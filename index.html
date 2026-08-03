@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fabrication Job Cost Calculator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --blueprint-navy: #0b2036;
+  --blueprint-deep: #071522;
+  --blueprint-line: #2f5f7a;
+  --blueprint-cyan: #6fd0e0;
+  --blueprint-cyan-dim: #3f8ea3;
+  --paper: #eef3f2;
+  --paper-dim: #b9c9cd;
+  --amber: #e0a53d;
+  --danger: #d97757;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  background:var(--blueprint-deep);
+  background-image:
+    linear-gradient(var(--blueprint-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--blueprint-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+  color:var(--paper);
+  font-family:'IBM Plex Sans', sans-serif;
+  min-height:100vh;
+  padding:32px 16px;
+}
+
+.sheet{
+  max-width:1000px;
+  margin:0 auto;
+  border:1.5px solid var(--blueprint-cyan-dim);
+  background:rgba(11,32,54,0.55);
+  backdrop-filter: blur(2px);
+  position:relative;
+}
+
+.sheet::before{
+  content:"";
+  position:absolute;
+  inset:8px;
+  border:1px solid var(--blueprint-line);
+  pointer-events:none;
+}
+
+.titleblock{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  padding:22px 28px 16px;
+  border-bottom:1.5px solid var(--blueprint-cyan-dim);
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.titleblock .left h1{
+  font-family:'Oswald', sans-serif;
+  font-weight:600;
+  font-size:26px;
+  letter-spacing:0.02em;
+  margin:0 0 4px;
+  color:var(--paper);
+  text-transform:uppercase;
+}
+
+.titleblock .left p{
+  margin:0;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--blueprint-cyan);
+  letter-spacing:0.05em;
+}
+
+.titleblock .right{
+  text-align:right;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  color:var(--paper-dim);
+  line-height:1.6;
+}
+
+.titleblock .right .rev{
+  color:var(--amber);
+}
+
+.body-grid{
+  display:grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap:0;
+}
+
+@media (max-width:800px){
+  .body-grid{grid-template-columns:1fr;}
+}
+
+.form-panel{
+  padding:26px 28px;
+  border-right:1px solid var(--blueprint-line);
+  max-height:none;
+}
+
+@media (max-width:800px){
+  .form-panel{border-right:none; border-bottom:1px solid var(--blueprint-line);}
+}
+
+.section-label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--amber);
+  margin:0 0 14px;
+  padding-bottom:6px;
+  border-bottom:1px dashed var(--blueprint-line);
+}
+
+.section-label:not(:first-child){
+  margin-top:24px;
+}
+
+.field{
+  margin-bottom:16px;
+}
+
+.field-row{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+}
+
+.field-row.three{
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.field label{
+  display:block;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--blueprint-cyan);
+  margin-bottom:8px;
+}
+
+.field .hint{
+  font-size:11px;
+  color:var(--paper-dim);
+  margin-top:6px;
+  font-family:'IBM Plex Sans', sans-serif;
+  line-height:1.4;
+}
+
+select, input[type="number"]{
+  width:100%;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--blueprint-line);
+  color:var(--paper);
+  padding:9px 10px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13.5px;
+  border-radius:2px;
+}
+
+select:focus, input:focus{
+  outline:2px solid var(--blueprint-cyan);
+  outline-offset:1px;
+  border-color:var(--blueprint-cyan);
+}
+
+.toggle-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.toggle-row button{
+  flex:1;
+  min-width:78px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--blueprint-line);
+  color:var(--paper-dim);
+  padding:9px 6px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11.5px;
+  cursor:pointer;
+  border-radius:2px;
+  transition:all 0.15s ease;
+}
+
+.toggle-row button:hover{
+  border-color:var(--blueprint-cyan-dim);
+  color:var(--paper);
+}
+
+.toggle-row button.active{
+  background:var(--blueprint-cyan-dim);
+  border-color:var(--blueprint-cyan);
+  color:var(--blueprint-deep);
+  font-weight:600;
+}
+
+.toggle-row button:focus-visible{
+  outline:2px solid var(--blueprint-cyan);
+  outline-offset:2px;
+}
+
+.detail-box{
+  margin-top:12px;
+  padding:12px;
+  border:1px dashed var(--blueprint-line);
+  display:none;
+}
+
+.detail-box.visible{
+  display:block;
+}
+
+.output-panel{
+  padding:26px 28px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  align-self:flex-start;
+}
+
+.readout-label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--amber);
+  margin-bottom:6px;
+}
+
+.readout{
+  border:1px dashed var(--blueprint-cyan-dim);
+  padding:20px;
+  margin-bottom:16px;
+  position:relative;
+}
+
+.readout .corner{
+  position:absolute;
+  width:10px;
+  height:10px;
+  border:1.5px solid var(--blueprint-cyan);
+}
+.readout .corner.tl{top:-1px;left:-1px;border-right:none;border-bottom:none;}
+.readout .corner.tr{top:-1px;right:-1px;border-left:none;border-bottom:none;}
+.readout .corner.bl{bottom:-1px;left:-1px;border-right:none;border-top:none;}
+.readout .corner.br{bottom:-1px;right:-1px;border-left:none;border-top:none;}
+
+.breakdown-row{
+  display:flex;
+  justify-content:space-between;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  padding:5px 0;
+  color:var(--paper-dim);
+}
+
+.breakdown-row .value{
+  color:var(--paper);
+}
+
+.breakdown-row.total{
+  border-top:1px solid var(--blueprint-line);
+  margin-top:8px;
+  padding-top:12px;
+}
+
+.breakdown-row.total span{
+  color:var(--paper);
+  font-weight:600;
+  font-size:14px;
+}
+
+.big-number{
+  font-family:'Oswald', sans-serif;
+  font-size:34px;
+  font-weight:600;
+  color:var(--amber);
+  line-height:1;
+  margin:10px 0 4px;
+}
+
+.unit{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11.5px;
+  color:var(--blueprint-cyan);
+}
+
+.deposit-line{
+  display:flex;
+  justify-content:space-between;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12.5px;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px dashed var(--blueprint-line);
+  color:var(--paper-dim);
+}
+
+.deposit-line .value{
+  color:var(--blueprint-cyan);
+  font-weight:600;
+}
+
+.footer-note{
+  font-family:'IBM Plex Sans', sans-serif;
+  font-size:11.5px;
+  color:var(--paper-dim);
+  line-height:1.5;
+  margin-top:8px;
+}
+
+.stamp{
+  margin-top:18px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10px;
+  color:var(--blueprint-cyan-dim);
+  letter-spacing:0.1em;
+  text-align:right;
+}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <div class="titleblock">
+    <div class="left">
+      <h1>Fabrication Job Calculator</h1>
+      <p>Quote a job the way your workshop actually spends money</p>
+    </div>
+    <div class="right">
+      DWG NO. FAB&#8209;002<br>
+      SHEET 1/1<br>
+      <span class="rev">REV B</span>
+    </div>
+  </div>
+
+  <div class="body-grid">
+    <div class="form-panel">
+
+      <p class="section-label">Material</p>
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label for="matType">Material</label>
+            <select id="matType">
+              <option value="170" data-name="Mild steel">Mild steel</option>
+              <option value="900" data-name="Aluminum">Aluminum</option>
+              <option value="700" data-name="Stainless steel">Stainless steel</option>
+              <option value="1200" data-name="Copper/Brass">Copper / Brass</option>
+              <option value="250" data-name="Wood/timber">Wood / timber</option>
+              <option value="0" data-name="Custom">Custom (set price)</option>
+            </select>
+          </div>
+          <div>
+            <label for="matPrice">Price per kg (₦)</label>
+            <input type="number" id="matPrice" min="0" value="170" step="10">
+          </div>
+        </div>
+        <p class="hint">Prices shift often — check today's rate at your usual supplier before quoting.</p>
+      </div>
+
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label for="matWeight">Material weight (kg)</label>
+            <input type="number" id="matWeight" min="0" value="15" step="0.5">
+          </div>
+          <div>
+            <label for="waste">Waste allowance</label>
+            <select id="waste">
+              <option value="0.05">5%</option>
+              <option value="0.1" selected>10%</option>
+              <option value="0.2">20%</option>
+              <option value="0.3">30% (offcut-heavy job)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <p class="section-label">Consumables</p>
+      <div class="field">
+        <div class="field-row three">
+          <div>
+            <label for="rodCount">Welding rods (no.)</label>
+            <input type="number" id="rodCount" min="0" value="20" step="1">
+          </div>
+          <div>
+            <label for="rodPrice">Price/rod (₦)</label>
+            <input type="number" id="rodPrice" min="0" value="250" step="10">
+          </div>
+          <div>
+            <label for="discCount">Cutting/grinding discs</label>
+            <input type="number" id="discCount" min="0" value="2" step="1">
+          </div>
+        </div>
+        <div class="field-row" style="margin-top:12px;">
+          <div>
+            <label for="discPrice">Price/disc (₦)</label>
+            <input type="number" id="discPrice" min="0" value="1200" step="50">
+          </div>
+          <div></div>
+        </div>
+      </div>
+
+      <p class="section-label">Labor</p>
+      <div class="field">
+        <div class="field-row three">
+          <div>
+            <label for="workers">No. of workers</label>
+            <input type="number" id="workers" min="1" value="1" step="1">
+          </div>
+          <div>
+            <label for="laborHours">Hours (per worker)</label>
+            <input type="number" id="laborHours" min="0" value="6" step="0.5">
+          </div>
+          <div>
+            <label for="laborRate">Rate/hour (₦)</label>
+            <input type="number" id="laborRate" min="0" value="1500" step="100">
+          </div>
+        </div>
+      </div>
+
+      <p class="section-label">Power source</p>
+      <div class="field">
+        <div class="toggle-row" id="powerSource">
+          <button type="button" data-val="grid" data-label="Grid only">Grid only</button>
+          <button type="button" data-val="mixed" data-label="Mixed" class="active">Mixed</button>
+          <button type="button" data-val="gen" data-label="Generator only">Gen only</button>
+        </div>
+        <div class="detail-box visible" id="powerDetail">
+          <div class="field-row">
+            <div>
+              <label for="genHours">Generator hours</label>
+              <input type="number" id="genHours" min="0" value="4" step="0.5">
+            </div>
+            <div>
+              <label for="fuelCostHr">Fuel cost/hour (₦)</label>
+              <input type="number" id="fuelCostHr" min="0" value="800" step="50">
+            </div>
+          </div>
+          <p class="hint">Estimate diesel/petrol burn for your set at current pump price — the hidden cost that eats a job's margin.</p>
+        </div>
+      </div>
+
+      <p class="section-label">Transport &amp; logistics</p>
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label for="transportCost">Pickup/delivery cost (₦)</label>
+            <input type="number" id="transportCost" min="0" value="0" step="100">
+          </div>
+          <div>
+            <label for="rushJob">Turnaround</label>
+            <select id="rushJob">
+              <option value="0">Standard</option>
+              <option value="0.15">Rush (+15%)</option>
+              <option value="0.3">Urgent (+30%)</option>
+            </select>
+          </div>
+        </div>
+        <p class="hint">Include fuel/vehicle cost for sourcing material or delivering the finished job to the customer.</p>
+      </div>
+
+      <p class="section-label">Finishing</p>
+      <div class="field">
+        <div class="toggle-row" id="finishing">
+          <button type="button" data-val="0" data-label="None" class="active">None</button>
+          <button type="button" data-val="1" data-label="Paint/Primer">Paint / Primer</button>
+        </div>
+        <div class="detail-box" id="finishDetail">
+          <div class="field-row">
+            <div>
+              <label for="paintLiters">Paint needed (liters)</label>
+              <input type="number" id="paintLiters" min="0" value="1" step="0.25">
+            </div>
+            <div>
+              <label for="paintCost">Cost/liter (₦)</label>
+              <input type="number" id="paintCost" min="0" value="3500" step="100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="section-label">Overhead &amp; margin</p>
+      <div class="field">
+        <label for="overhead">Overhead (rent, tool wear, misc.)</label>
+        <select id="overhead">
+          <option value="0">0%</option>
+          <option value="0.05" selected>5%</option>
+          <option value="0.1">10%</option>
+          <option value="0.15">15%</option>
+        </select>
+        <p class="hint">Covers workshop rent, tool depreciation, feeding — costs that quietly eat profit if never charged for.</p>
+      </div>
+
+      <div class="field">
+        <label for="margin">Profit margin</label>
+        <div class="toggle-row" id="margin">
+          <button type="button" data-val="0.1" data-label="10%">10%</button>
+          <button type="button" data-val="0.2" data-label="20%" class="active">20%</button>
+          <button type="button" data-val="0.35" data-label="35%">35%</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="output-panel">
+      <div>
+        <div class="readout-label">Job cost breakdown</div>
+        <div class="readout">
+          <span class="corner tl"></span><span class="corner tr"></span>
+          <span class="corner bl"></span><span class="corner br"></span>
+
+          <div class="breakdown-row"><span>Material (incl. waste)</span><span class="value" id="outMaterial">₦0</span></div>
+          <div class="breakdown-row"><span>Consumables (rods/discs)</span><span class="value" id="outConsumables">₦0</span></div>
+          <div class="breakdown-row"><span>Labor</span><span class="value" id="outLabor">₦0</span></div>
+          <div class="breakdown-row"><span>Power / fuel</span><span class="value" id="outPower">₦0</span></div>
+          <div class="breakdown-row"><span>Transport</span><span class="value" id="outTransport">₦0</span></div>
+          <div class="breakdown-row"><span>Finishing</span><span class="value" id="outFinishing">₦0</span></div>
+          <div class="breakdown-row"><span>Overhead</span><span class="value" id="outOverhead">₦0</span></div>
+          <div class="breakdown-row total"><span>Base cost</span><span id="outBase">₦0</span></div>
+
+          <div class="big-number" id="outQuote">₦0</div>
+          <div class="unit">RECOMMENDED QUOTE TO CUSTOMER</div>
+
+          <div class="deposit-line"><span>Suggested deposit (50%)</span><span class="value" id="outDeposit">₦0</span></div>
+        </div>
+
+        <p class="footer-note">Base cost = material + consumables + labor + power + transport + finishing + overhead. Quote = base cost + rush surcharge + your margin. Adjust prices above to match today's market before sending to a customer.</p>
+      </div>
+
+      <div class="stamp">CALC. RUNS LOCALLY &middot; NO DATA STORED</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const state = {
+    matPrice: 170,
+    matWeight: 15,
+    waste: 0.1,
+    rodCount: 20,
+    rodPrice: 250,
+    discCount: 2,
+    discPrice: 1200,
+    workers: 1,
+    laborHours: 6,
+    laborRate: 1500,
+    powerSource: 'mixed',
+    genHours: 4,
+    fuelCostHr: 800,
+    transportCost: 0,
+    rushJob: 0,
+    finishing: 0,
+    paintLiters: 1,
+    paintCost: 3500,
+    overhead: 0.05,
+    margin: 0.2
+  };
+
+  function bindNumber(id, key){
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {
+      state[key] = Math.max(0, parseFloat(el.value) || 0);
+      calculate();
+    });
+  }
+
+  function bindSelect(id, key){
+    const el = document.getElementById(id);
+    el.addEventListener('change', () => {
+      state[key] = parseFloat(el.value) || 0;
+      calculate();
+    });
+  }
+
+  const matType = document.getElementById('matType');
+  const matPrice = document.getElementById('matPrice');
+  matType.addEventListener('change', () => {
+    const opt = matType.options[matType.selectedIndex];
+    matPrice.value = opt.value;
+    state.matPrice = parseFloat(opt.value) || 0;
+    calculate();
+  });
+
+  bindNumber('matPrice', 'matPrice');
+  bindNumber('matWeight', 'matWeight');
+  bindSelect('waste', 'waste');
+
+  bindNumber('rodCount', 'rodCount');
+  bindNumber('rodPrice', 'rodPrice');
+  bindNumber('discCount', 'discCount');
+  bindNumber('discPrice', 'discPrice');
+
+  bindNumber('workers', 'workers');
+  bindNumber('laborHours', 'laborHours');
+  bindNumber('laborRate', 'laborRate');
+
+  bindNumber('genHours', 'genHours');
+  bindNumber('fuelCostHr', 'fuelCostHr');
+
+  bindNumber('transportCost', 'transportCost');
+  bindSelect('rushJob', 'rushJob');
+
+  bindNumber('paintLiters', 'paintLiters');
+  bindNumber('paintCost', 'paintCost');
+
+  bindSelect('overhead', 'overhead');
+
+  const powerDetail = document.getElementById('powerDetail');
+  const finishDetail = document.getElementById('finishDetail');
+
+  function setupToggleGroup(id, key, isString, onChange){
+    const group = document.getElementById(id);
+    const buttons = group.querySelectorAll('button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state[key] = isString ? btn.dataset.val : parseFloat(btn.dataset.val);
+        if (onChange) onChange();
+        calculate();
+      });
+    });
+  }
+
+  setupToggleGroup('powerSource', 'powerSource', true, () => {
+    powerDetail.classList.toggle('visible', state.powerSource !== 'grid');
+  });
+
+  setupToggleGroup('finishing', 'finishing', false, () => {
+    finishDetail.classList.toggle('visible', state.finishing === 1);
+  });
+
+  setupToggleGroup('margin', 'margin', false, null);
+
+  function formatNaira(n){
+    return '₦' + Math.round(n).toLocaleString('en-NG');
+  }
+
+  function calculate(){
+    const materialCost = state.matPrice * state.matWeight * (1 + state.waste);
+    const consumablesCost = (state.rodCount * state.rodPrice) + (state.discCount * state.discPrice);
+    const laborCost = state.workers * state.laborHours * state.laborRate;
+
+    let powerCost = 0;
+    if (state.powerSource !== 'grid'){
+      powerCost = state.genHours * state.fuelCostHr;
+    }
+
+    const transportCost = state.transportCost;
+
+    let finishingCost = 0;
+    if (state.finishing === 1){
+      finishingCost = state.paintLiters * state.paintCost;
+    }
+
+    const subtotal = materialCost + consumablesCost + laborCost + powerCost + transportCost + finishingCost;
+    const overheadCost = subtotal * state.overhead;
+    const baseCost = subtotal + overheadCost;
+
+    const rushSurcharge = baseCost * state.rushJob;
+    const quote = (baseCost + rushSurcharge) * (1 + state.margin);
+    const deposit = quote * 0.5;
+
+    document.getElementById('outMaterial').textContent = formatNaira(materialCost);
+    document.getElementById('outConsumables').textContent = formatNaira(consumablesCost);
+    document.getElementById('outLabor').textContent = formatNaira(laborCost);
+    document.getElementById('outPower').textContent = formatNaira(powerCost);
+    document.getElementById('outTransport').textContent = formatNaira(transportCost);
+    document.getElementById('outFinishing').textContent = formatNaira(finishingCost);
+    document.getElementById('outOverhead').textContent = formatNaira(overheadCost);
+    document.getElementById('outBase').textContent = formatNaira(baseCost);
+    document.getElementById('outQuote').textContent = formatNaira(quote);
+    document.getElementById('outDeposit').textContent = formatNaira(deposit);
+  }
+
+  calculate();
+})();
+</script>
+
+</body>
+</html>
