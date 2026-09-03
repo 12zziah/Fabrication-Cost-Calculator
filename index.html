@@ -17,6 +17,7 @@
   --paper-dim: #b9c9cd;
   --amber: #e0a53d;
   --danger: #d97757;
+  --good: #6fd0a0;
 }
 
 *{box-sizing:border-box;}
@@ -36,7 +37,7 @@ body{
 }
 
 .sheet{
-  max-width:1000px;
+  max-width:1080px;
   margin:0 auto;
   border:1.5px solid var(--blueprint-cyan-dim);
   background:rgba(11,32,54,0.55);
@@ -92,6 +93,34 @@ body{
   color:var(--amber);
 }
 
+.tabbar{
+  display:flex;
+  border-bottom:1.5px solid var(--blueprint-cyan-dim);
+}
+
+.tabbar button{
+  flex:1;
+  background:transparent;
+  border:none;
+  border-right:1px solid var(--blueprint-line);
+  color:var(--paper-dim);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  padding:12px 8px;
+  cursor:pointer;
+}
+.tabbar button:last-child{border-right:none;}
+.tabbar button.active{
+  background:rgba(111,208,224,0.08);
+  color:var(--blueprint-cyan);
+  font-weight:600;
+}
+
+.panel-view{display:none;}
+.panel-view.active{display:block;}
+
 .body-grid{
   display:grid;
   grid-template-columns: 1.2fr 1fr;
@@ -105,7 +134,6 @@ body{
 .form-panel{
   padding:26px 28px;
   border-right:1px solid var(--blueprint-line);
-  max-height:none;
 }
 
 @media (max-width:800px){
@@ -121,6 +149,9 @@ body{
   margin:0 0 14px;
   padding-bottom:6px;
   border-bottom:1px dashed var(--blueprint-line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
 .section-label:not(:first-child){
@@ -159,7 +190,7 @@ body{
   line-height:1.4;
 }
 
-select, input[type="number"]{
+select, input[type="number"], input[type="text"], input[type="tel"]{
   width:100%;
   background:rgba(255,255,255,0.03);
   border:1px solid var(--blueprint-line);
@@ -176,11 +207,7 @@ select:focus, input:focus{
   border-color:var(--blueprint-cyan);
 }
 
-.toggle-row{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
+.toggle-row{display:flex;gap:8px;flex-wrap:wrap;}
 
 .toggle-row button{
   flex:1;
@@ -195,12 +222,7 @@ select:focus, input:focus{
   border-radius:2px;
   transition:all 0.15s ease;
 }
-
-.toggle-row button:hover{
-  border-color:var(--blueprint-cyan-dim);
-  color:var(--paper);
-}
-
+.toggle-row button:hover{border-color:var(--blueprint-cyan-dim);color:var(--paper);}
 .toggle-row button.active{
   background:var(--blueprint-cyan-dim);
   border-color:var(--blueprint-cyan);
@@ -208,20 +230,43 @@ select:focus, input:focus{
   font-weight:600;
 }
 
-.toggle-row button:focus-visible{
-  outline:2px solid var(--blueprint-cyan);
-  outline-offset:2px;
-}
+.detail-box{margin-top:12px;padding:12px;border:1px dashed var(--blueprint-line);display:none;}
+.detail-box.visible{display:block;}
 
-.detail-box{
-  margin-top:12px;
-  padding:12px;
-  border:1px dashed var(--blueprint-line);
-  display:none;
+.mini-btn{
+  background:transparent;
+  border:1px solid var(--blueprint-cyan-dim);
+  color:var(--blueprint-cyan);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px;
+  letter-spacing:0.04em;
+  padding:5px 10px;
+  cursor:pointer;
+  border-radius:2px;
+  text-transform:none;
 }
+.mini-btn:hover{background:rgba(111,208,224,0.1);}
+.mini-btn.danger{border-color:var(--danger);color:var(--danger);}
+.mini-btn.danger:hover{background:rgba(217,119,87,0.1);}
 
-.detail-box.visible{
-  display:block;
+.line-item{
+  border:1px solid var(--blueprint-line);
+  padding:14px;
+  margin-bottom:12px;
+  position:relative;
+}
+.line-item-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+.line-item-head span{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  color:var(--blueprint-cyan);
+  text-transform:uppercase;
+  letter-spacing:0.05em;
 }
 
 .output-panel{
@@ -250,88 +295,96 @@ select:focus, input:focus{
   position:relative;
 }
 
-.readout .corner{
-  position:absolute;
-  width:10px;
-  height:10px;
-  border:1.5px solid var(--blueprint-cyan);
-}
+.readout .corner{position:absolute;width:10px;height:10px;border:1.5px solid var(--blueprint-cyan);}
 .readout .corner.tl{top:-1px;left:-1px;border-right:none;border-bottom:none;}
 .readout .corner.tr{top:-1px;right:-1px;border-left:none;border-bottom:none;}
 .readout .corner.bl{bottom:-1px;left:-1px;border-right:none;border-top:none;}
 .readout .corner.br{bottom:-1px;right:-1px;border-left:none;border-top:none;}
 
 .breakdown-row{
-  display:flex;
-  justify-content:space-between;
-  font-family:'IBM Plex Mono', monospace;
-  font-size:12px;
-  padding:5px 0;
-  color:var(--paper-dim);
+  display:flex;justify-content:space-between;
+  font-family:'IBM Plex Mono', monospace;font-size:12px;
+  padding:5px 0;color:var(--paper-dim);
 }
-
-.breakdown-row .value{
-  color:var(--paper);
-}
-
-.breakdown-row.total{
-  border-top:1px solid var(--blueprint-line);
-  margin-top:8px;
-  padding-top:12px;
-}
-
-.breakdown-row.total span{
-  color:var(--paper);
-  font-weight:600;
-  font-size:14px;
-}
+.breakdown-row .value{color:var(--paper);}
+.breakdown-row.total{border-top:1px solid var(--blueprint-line);margin-top:8px;padding-top:12px;}
+.breakdown-row.total span{color:var(--paper);font-weight:600;font-size:14px;}
 
 .big-number{
   font-family:'Oswald', sans-serif;
-  font-size:34px;
-  font-weight:600;
-  color:var(--amber);
-  line-height:1;
-  margin:10px 0 4px;
+  font-size:34px;font-weight:600;color:var(--amber);
+  line-height:1;margin:10px 0 4px;
 }
-
-.unit{
-  font-family:'IBM Plex Mono', monospace;
-  font-size:11.5px;
-  color:var(--blueprint-cyan);
-}
+.unit{font-family:'IBM Plex Mono', monospace;font-size:11.5px;color:var(--blueprint-cyan);}
 
 .deposit-line{
-  display:flex;
-  justify-content:space-between;
-  font-family:'IBM Plex Mono', monospace;
-  font-size:12.5px;
-  margin-top:14px;
-  padding-top:12px;
-  border-top:1px dashed var(--blueprint-line);
-  color:var(--paper-dim);
+  display:flex;justify-content:space-between;
+  font-family:'IBM Plex Mono', monospace;font-size:12.5px;
+  margin-top:14px;padding-top:12px;
+  border-top:1px dashed var(--blueprint-line);color:var(--paper-dim);
 }
-
-.deposit-line .value{
-  color:var(--blueprint-cyan);
-  font-weight:600;
-}
+.deposit-line .value{color:var(--blueprint-cyan);font-weight:600;}
 
 .footer-note{
-  font-family:'IBM Plex Sans', sans-serif;
-  font-size:11.5px;
-  color:var(--paper-dim);
-  line-height:1.5;
-  margin-top:8px;
+  font-family:'IBM Plex Sans', sans-serif;font-size:11.5px;
+  color:var(--paper-dim);line-height:1.5;margin-top:8px;
 }
 
-.stamp{
-  margin-top:18px;
+.action-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+.action-btns button{
+  flex:1;min-width:130px;
   font-family:'IBM Plex Mono', monospace;
-  font-size:10px;
-  color:var(--blueprint-cyan-dim);
-  letter-spacing:0.1em;
-  text-align:right;
+  font-size:11.5px;letter-spacing:0.04em;
+  padding:11px 8px;
+  border-radius:2px;cursor:pointer;
+  text-transform:uppercase;
+}
+.btn-primary{background:var(--amber);border:1px solid var(--amber);color:var(--blueprint-deep);font-weight:700;}
+.btn-primary:hover{background:#eeb654;}
+.btn-secondary{background:transparent;border:1px solid var(--blueprint-cyan-dim);color:var(--blueprint-cyan);}
+.btn-secondary:hover{background:rgba(111,208,224,0.08);}
+
+.stamp{
+  margin-top:18px;font-family:'IBM Plex Mono', monospace;
+  font-size:10px;color:var(--blueprint-cyan-dim);
+  letter-spacing:0.1em;text-align:right;
+}
+
+/* History panel */
+.history-panel{padding:26px 28px;}
+.history-empty{color:var(--paper-dim);font-size:13px;padding:20px;text-align:center;border:1px dashed var(--blueprint-line);}
+.history-item{
+  border:1px solid var(--blueprint-line);
+  padding:14px 16px;margin-bottom:10px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+}
+.history-item .hinfo{font-family:'IBM Plex Mono', monospace;font-size:12px;color:var(--paper-dim);}
+.history-item .hinfo .hname{color:var(--paper);font-size:14px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;display:block;margin-bottom:3px;}
+.history-item .htotal{color:var(--amber);font-weight:600;}
+.history-btns{display:flex;gap:6px;}
+
+/* Settings panel */
+.settings-panel{padding:26px 28px;max-width:480px;}
+
+/* Print-only customer quote sheet */
+#printSheet{display:none;}
+@media print{
+  body *{visibility:hidden;}
+  #printSheet, #printSheet *{visibility:visible;}
+  #printSheet{
+    display:block;
+    position:absolute;top:0;left:0;width:100%;
+    background:#fff;color:#111;
+    padding:30px;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  #printSheet h2{font-family:'Oswald',sans-serif;font-size:22px;margin:0 0 2px;}
+  #printSheet .biz{color:#555;font-size:13px;margin-bottom:20px;}
+  #printSheet table{width:100%;border-collapse:collapse;margin-bottom:18px;}
+  #printSheet th, #printSheet td{text-align:left;padding:8px 6px;border-bottom:1px solid #ddd;font-size:13px;}
+  #printSheet .p-total{font-size:20px;font-weight:700;text-align:right;margin-top:10px;}
+  #printSheet .p-deposit{text-align:right;color:#555;font-size:13px;}
+  #printSheet .p-meta{font-size:12px;color:#777;margin-bottom:14px;}
 }
 </style>
 </head>
@@ -346,223 +399,212 @@ select:focus, input:focus{
     <div class="right">
       DWG NO. FAB&#8209;002<br>
       SHEET 1/1<br>
-      <span class="rev">REV B</span>
+      <span class="rev">REV C</span>
     </div>
   </div>
 
-  <div class="body-grid">
-    <div class="form-panel">
+  <div class="tabbar">
+    <button data-tab="calc" class="active">Calculator</button>
+    <button data-tab="history">Saved quotes</button>
+    <button data-tab="settings">My business</button>
+  </div>
 
-      <p class="section-label">Material</p>
-      <div class="field">
-        <div class="field-row">
-          <div>
-            <label for="matType">Material</label>
-            <select id="matType">
-              <option value="170" data-name="Mild steel">Mild steel</option>
-              <option value="900" data-name="Aluminum">Aluminum</option>
-              <option value="700" data-name="Stainless steel">Stainless steel</option>
-              <option value="1200" data-name="Copper/Brass">Copper / Brass</option>
-              <option value="250" data-name="Wood/timber">Wood / timber</option>
-              <option value="0" data-name="Custom">Custom (set price)</option>
-            </select>
-          </div>
-          <div>
-            <label for="matPrice">Price per kg (₦)</label>
-            <input type="number" id="matPrice" min="0" value="170" step="10">
-          </div>
-        </div>
-        <p class="hint">Prices shift often — check today's rate at your usual supplier before quoting.</p>
-      </div>
+  <!-- CALCULATOR VIEW -->
+  <div class="panel-view active" id="view-calc">
+    <div class="body-grid">
+      <div class="form-panel">
 
-      <div class="field">
-        <div class="field-row">
-          <div>
-            <label for="matWeight">Material weight (kg)</label>
-            <input type="number" id="matWeight" min="0" value="15" step="0.5">
-          </div>
-          <div>
-            <label for="waste">Waste allowance</label>
-            <select id="waste">
-              <option value="0.05">5%</option>
-              <option value="0.1" selected>10%</option>
-              <option value="0.2">20%</option>
-              <option value="0.3">30% (offcut-heavy job)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <p class="section-label">Consumables</p>
-      <div class="field">
-        <div class="field-row three">
-          <div>
-            <label for="rodCount">Welding rods (no.)</label>
-            <input type="number" id="rodCount" min="0" value="20" step="1">
-          </div>
-          <div>
-            <label for="rodPrice">Price/rod (₦)</label>
-            <input type="number" id="rodPrice" min="0" value="250" step="10">
-          </div>
-          <div>
-            <label for="discCount">Cutting/grinding discs</label>
-            <input type="number" id="discCount" min="0" value="2" step="1">
-          </div>
-        </div>
-        <div class="field-row" style="margin-top:12px;">
-          <div>
-            <label for="discPrice">Price/disc (₦)</label>
-            <input type="number" id="discPrice" min="0" value="1200" step="50">
-          </div>
-          <div></div>
-        </div>
-      </div>
-
-      <p class="section-label">Labor</p>
-      <div class="field">
-        <div class="field-row three">
-          <div>
-            <label for="workers">No. of workers</label>
-            <input type="number" id="workers" min="1" value="1" step="1">
-          </div>
-          <div>
-            <label for="laborHours">Hours (per worker)</label>
-            <input type="number" id="laborHours" min="0" value="6" step="0.5">
-          </div>
-          <div>
-            <label for="laborRate">Rate/hour (₦)</label>
-            <input type="number" id="laborRate" min="0" value="1500" step="100">
-          </div>
-        </div>
-      </div>
-
-      <p class="section-label">Power source</p>
-      <div class="field">
-        <div class="toggle-row" id="powerSource">
-          <button type="button" data-val="grid" data-label="Grid only">Grid only</button>
-          <button type="button" data-val="mixed" data-label="Mixed" class="active">Mixed</button>
-          <button type="button" data-val="gen" data-label="Generator only">Gen only</button>
-        </div>
-        <div class="detail-box visible" id="powerDetail">
+        <p class="section-label">Customer &amp; job</p>
+        <div class="field">
           <div class="field-row">
             <div>
-              <label for="genHours">Generator hours</label>
-              <input type="number" id="genHours" min="0" value="4" step="0.5">
+              <label for="custName">Customer name</label>
+              <input type="text" id="custName" placeholder="e.g. Mr. Adewale">
             </div>
             <div>
-              <label for="fuelCostHr">Fuel cost/hour (₦)</label>
-              <input type="number" id="fuelCostHr" min="0" value="800" step="50">
+              <label for="jobRef">Job description</label>
+              <input type="text" id="jobRef" placeholder="e.g. Compound gate + burglary">
             </div>
           </div>
-          <p class="hint">Estimate diesel/petrol burn for your set at current pump price — the hidden cost that eats a job's margin.</p>
         </div>
-      </div>
 
-      <p class="section-label">Transport &amp; logistics</p>
-      <div class="field">
-        <div class="field-row">
-          <div>
-            <label for="transportCost">Pickup/delivery cost (₦)</label>
-            <input type="number" id="transportCost" min="0" value="0" step="100">
-          </div>
-          <div>
-            <label for="rushJob">Turnaround</label>
-            <select id="rushJob">
-              <option value="0">Standard</option>
-              <option value="0.15">Rush (+15%)</option>
-              <option value="0.3">Urgent (+30%)</option>
-            </select>
-          </div>
-        </div>
-        <p class="hint">Include fuel/vehicle cost for sourcing material or delivering the finished job to the customer.</p>
-      </div>
+        <p class="section-label">
+          Line items
+          <button type="button" class="mini-btn" id="addLineBtn">+ Add part</button>
+        </p>
+        <div id="lineItems"></div>
 
-      <p class="section-label">Finishing</p>
-      <div class="field">
-        <div class="toggle-row" id="finishing">
-          <button type="button" data-val="0" data-label="None" class="active">None</button>
-          <button type="button" data-val="1" data-label="Paint/Primer">Paint / Primer</button>
+        <p class="section-label">Power source</p>
+        <div class="field">
+          <div class="toggle-row" id="powerSource">
+            <button type="button" data-val="grid" class="">Grid only</button>
+            <button type="button" data-val="mixed" class="active">Mixed</button>
+            <button type="button" data-val="gen" class="">Gen only</button>
+          </div>
+          <div class="detail-box visible" id="powerDetail">
+            <div class="field-row">
+              <div>
+                <label for="genHours">Generator hours</label>
+                <input type="number" id="genHours" min="0" value="4" step="0.5">
+              </div>
+              <div>
+                <label for="fuelCostHr">Fuel cost/hour (₦)</label>
+                <input type="number" id="fuelCostHr" min="0" value="800" step="50">
+              </div>
+            </div>
+            <p class="hint">Estimate diesel/petrol burn for your set at current pump price.</p>
+          </div>
         </div>
-        <div class="detail-box" id="finishDetail">
+
+        <p class="section-label">Transport &amp; turnaround</p>
+        <div class="field">
           <div class="field-row">
             <div>
-              <label for="paintLiters">Paint needed (liters)</label>
-              <input type="number" id="paintLiters" min="0" value="1" step="0.25">
+              <label for="transportCost">Pickup/delivery cost (₦)</label>
+              <input type="number" id="transportCost" min="0" value="0" step="100">
             </div>
             <div>
-              <label for="paintCost">Cost/liter (₦)</label>
-              <input type="number" id="paintCost" min="0" value="3500" step="100">
+              <label for="rushJob">Turnaround</label>
+              <select id="rushJob">
+                <option value="0">Standard</option>
+                <option value="0.15">Rush (+15%)</option>
+                <option value="0.3">Urgent (+30%)</option>
+              </select>
             </div>
+          </div>
+        </div>
+
+        <p class="section-label">Finishing</p>
+        <div class="field">
+          <div class="toggle-row" id="finishing">
+            <button type="button" data-val="0" class="active">None</button>
+            <button type="button" data-val="1" class="">Paint / Primer</button>
+          </div>
+          <div class="detail-box" id="finishDetail">
+            <div class="field-row">
+              <div>
+                <label for="paintLiters">Paint needed (liters)</label>
+                <input type="number" id="paintLiters" min="0" value="1" step="0.25">
+              </div>
+              <div>
+                <label for="paintCost">Cost/liter (₦)</label>
+                <input type="number" id="paintCost" min="0" value="3500" step="100">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="section-label">Overhead &amp; margin</p>
+        <div class="field">
+          <label for="overhead">Overhead (rent, tool wear, misc.)</label>
+          <select id="overhead">
+            <option value="0">0%</option>
+            <option value="0.05" selected>5%</option>
+            <option value="0.1">10%</option>
+            <option value="0.15">15%</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Profit margin</label>
+          <div class="toggle-row" id="margin">
+            <button type="button" data-val="0.1" class="">10%</button>
+            <button type="button" data-val="0.2" class="active">20%</button>
+            <button type="button" data-val="0.35" class="">35%</button>
           </div>
         </div>
       </div>
 
-      <p class="section-label">Overhead &amp; margin</p>
-      <div class="field">
-        <label for="overhead">Overhead (rent, tool wear, misc.)</label>
-        <select id="overhead">
-          <option value="0">0%</option>
-          <option value="0.05" selected>5%</option>
-          <option value="0.1">10%</option>
-          <option value="0.15">15%</option>
-        </select>
-        <p class="hint">Covers workshop rent, tool depreciation, feeding — costs that quietly eat profit if never charged for.</p>
-      </div>
+      <div class="output-panel">
+        <div>
+          <div class="readout-label">Job cost breakdown (internal)</div>
+          <div class="readout">
+            <span class="corner tl"></span><span class="corner tr"></span>
+            <span class="corner bl"></span><span class="corner br"></span>
 
-      <div class="field">
-        <label for="margin">Profit margin</label>
-        <div class="toggle-row" id="margin">
-          <button type="button" data-val="0.1" data-label="10%">10%</button>
-          <button type="button" data-val="0.2" data-label="20%" class="active">20%</button>
-          <button type="button" data-val="0.35" data-label="35%">35%</button>
+            <div class="breakdown-row"><span>Material + labor + consumables (all parts)</span><span class="value" id="outParts">₦0</span></div>
+            <div class="breakdown-row"><span>Power / fuel</span><span class="value" id="outPower">₦0</span></div>
+            <div class="breakdown-row"><span>Transport</span><span class="value" id="outTransport">₦0</span></div>
+            <div class="breakdown-row"><span>Finishing</span><span class="value" id="outFinishing">₦0</span></div>
+            <div class="breakdown-row"><span>Overhead</span><span class="value" id="outOverhead">₦0</span></div>
+            <div class="breakdown-row total"><span>Base cost</span><span id="outBase">₦0</span></div>
+
+            <div class="big-number" id="outQuote">₦0</div>
+            <div class="unit">RECOMMENDED QUOTE TO CUSTOMER</div>
+
+            <div class="deposit-line"><span>Suggested deposit (50%)</span><span class="value" id="outDeposit">₦0</span></div>
+          </div>
+
+          <p class="footer-note">This breakdown is for you only. The customer-facing quote (download/print/WhatsApp) hides your cost structure and margin — it only shows itemized pricing and the total.</p>
+
+          <div class="action-btns">
+            <button class="btn-primary" id="saveJobBtn">Save this quote</button>
+            <button class="btn-secondary" id="printBtn">Download / Print quote</button>
+            <button class="btn-secondary" id="waBtn">Send via WhatsApp</button>
+          </div>
         </div>
+        <div class="stamp">CALC. RUNS LOCALLY &middot; NO DATA SENT ANYWHERE</div>
       </div>
-
     </div>
+  </div>
 
-    <div class="output-panel">
-      <div>
-        <div class="readout-label">Job cost breakdown</div>
-        <div class="readout">
-          <span class="corner tl"></span><span class="corner tr"></span>
-          <span class="corner bl"></span><span class="corner br"></span>
+  <!-- HISTORY VIEW -->
+  <div class="panel-view" id="view-history">
+    <div class="history-panel">
+      <p class="section-label">Saved quotes</p>
+      <div id="historyList"><div class="history-empty">No saved quotes yet. Build a quote in the Calculator tab and hit "Save this quote".</div></div>
+    </div>
+  </div>
 
-          <div class="breakdown-row"><span>Material (incl. waste)</span><span class="value" id="outMaterial">₦0</span></div>
-          <div class="breakdown-row"><span>Consumables (rods/discs)</span><span class="value" id="outConsumables">₦0</span></div>
-          <div class="breakdown-row"><span>Labor</span><span class="value" id="outLabor">₦0</span></div>
-          <div class="breakdown-row"><span>Power / fuel</span><span class="value" id="outPower">₦0</span></div>
-          <div class="breakdown-row"><span>Transport</span><span class="value" id="outTransport">₦0</span></div>
-          <div class="breakdown-row"><span>Finishing</span><span class="value" id="outFinishing">₦0</span></div>
-          <div class="breakdown-row"><span>Overhead</span><span class="value" id="outOverhead">₦0</span></div>
-          <div class="breakdown-row total"><span>Base cost</span><span id="outBase">₦0</span></div>
-
-          <div class="big-number" id="outQuote">₦0</div>
-          <div class="unit">RECOMMENDED QUOTE TO CUSTOMER</div>
-
-          <div class="deposit-line"><span>Suggested deposit (50%)</span><span class="value" id="outDeposit">₦0</span></div>
-        </div>
-
-        <p class="footer-note">Base cost = material + consumables + labor + power + transport + finishing + overhead. Quote = base cost + rush surcharge + your margin. Adjust prices above to match today's market before sending to a customer.</p>
+  <!-- SETTINGS VIEW -->
+  <div class="panel-view" id="view-settings">
+    <div class="settings-panel">
+      <p class="section-label">Your business details</p>
+      <p class="hint" style="margin-bottom:16px;">Saved on this device only. Auto-included on every customer quote you generate.</p>
+      <div class="field">
+        <label for="bizName">Business / your name</label>
+        <input type="text" id="bizName" placeholder="e.g. Adewale Fabrication Works">
       </div>
-
-      <div class="stamp">CALC. RUNS LOCALLY &middot; NO DATA STORED</div>
+      <div class="field">
+        <label for="bizPhone">Phone number</label>
+        <input type="tel" id="bizPhone" placeholder="e.g. 0803 000 0000">
+      </div>
+      <div class="field">
+        <label for="bizLocation">Location</label>
+        <input type="text" id="bizLocation" placeholder="e.g. Ikeja, Lagos">
+      </div>
+      <button class="mini-btn" id="saveBizBtn" style="padding:9px 16px;">Save business details</button>
     </div>
   </div>
 </div>
 
+<!-- Hidden sheet used only when printing/downloading the customer quote -->
+<div id="printSheet">
+  <h2 id="pBizName">Your Business Name</h2>
+  <div class="biz" id="pBizContact">Phone &middot; Location</div>
+  <div class="p-meta" id="pMeta">Quote for: — &middot; Date: —</div>
+  <table>
+    <thead><tr><th>Item</th><th style="text-align:right;">Price</th></tr></thead>
+    <tbody id="pLines"></tbody>
+  </table>
+  <div class="p-total" id="pTotal">Total: ₦0</div>
+  <div class="p-deposit" id="pDeposit">Suggested deposit: ₦0</div>
+</div>
+
 <script>
 (function(){
-  const state = {
-    matPrice: 170,
-    matWeight: 15,
-    waste: 0.1,
-    rodCount: 20,
-    rodPrice: 250,
-    discCount: 2,
-    discPrice: 1200,
-    workers: 1,
-    laborHours: 6,
-    laborRate: 1500,
+  const MATERIALS = [
+    {name:'Mild steel', price:170},
+    {name:'Aluminum', price:900},
+    {name:'Stainless steel', price:700},
+    {name:'Copper / Brass', price:1200},
+    {name:'Wood / timber', price:250},
+    {name:'Custom', price:0}
+  ];
+
+  let lineItems = [];
+  let lineIdCounter = 1;
+
+  const job = {
     powerSource: 'mixed',
     genHours: 4,
     fuelCostHr: 800,
@@ -575,55 +617,124 @@ select:focus, input:focus{
     margin: 0.2
   };
 
-  function bindNumber(id, key){
-    const el = document.getElementById(id);
-    el.addEventListener('input', () => {
-      state[key] = Math.max(0, parseFloat(el.value) || 0);
-      calculate();
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tabbar button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabbar button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel-view').forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('view-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'history') renderHistory();
     });
-  }
-
-  function bindSelect(id, key){
-    const el = document.getElementById(id);
-    el.addEventListener('change', () => {
-      state[key] = parseFloat(el.value) || 0;
-      calculate();
-    });
-  }
-
-  const matType = document.getElementById('matType');
-  const matPrice = document.getElementById('matPrice');
-  matType.addEventListener('change', () => {
-    const opt = matType.options[matType.selectedIndex];
-    matPrice.value = opt.value;
-    state.matPrice = parseFloat(opt.value) || 0;
-    calculate();
   });
 
-  bindNumber('matPrice', 'matPrice');
-  bindNumber('matWeight', 'matWeight');
-  bindSelect('waste', 'waste');
+  // ---------- Line items ----------
+  function addLineItem(prefill){
+    const id = lineIdCounter++;
+    lineItems.push(Object.assign({
+      id,
+      desc: '',
+      matPrice: 170,
+      weight: 5,
+      waste: 0.1,
+      laborHours: 2,
+      laborRate: 1500,
+      consumables: 0
+    }, prefill || {}));
+    renderLineItems();
+  }
 
-  bindNumber('rodCount', 'rodCount');
-  bindNumber('rodPrice', 'rodPrice');
-  bindNumber('discCount', 'discCount');
-  bindNumber('discPrice', 'discPrice');
+  function removeLineItem(id){
+    lineItems = lineItems.filter(l => l.id !== id);
+    if (lineItems.length === 0) addLineItem();
+    renderLineItems();
+  }
 
-  bindNumber('workers', 'workers');
-  bindNumber('laborHours', 'laborHours');
-  bindNumber('laborRate', 'laborRate');
+  function renderLineItems(){
+    const wrap = document.getElementById('lineItems');
+    wrap.innerHTML = '';
+    lineItems.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'line-item';
+      div.innerHTML = `
+        <div class="line-item-head">
+          <span>Part ${idx + 1}</span>
+          ${lineItems.length > 1 ? `<button type="button" class="mini-btn danger" data-remove="${item.id}">Remove</button>` : ''}
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Part description</label>
+          <input type="text" data-field="desc" data-id="${item.id}" value="${escapeAttr(item.desc)}" placeholder="e.g. Gate frame">
+        </div>
+        <div class="field-row" style="margin-bottom:10px;">
+          <div>
+            <label>Material</label>
+            <select data-field="matSelect" data-id="${item.id}">
+              ${MATERIALS.map(m => `<option value="${m.price}" ${m.price === item.matPrice ? 'selected' : ''}>${m.name}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>Price/kg (₦)</label>
+            <input type="number" data-field="matPrice" data-id="${item.id}" value="${item.matPrice}" min="0" step="10">
+          </div>
+        </div>
+        <div class="field-row three" style="margin-bottom:10px;">
+          <div>
+            <label>Weight (kg)</label>
+            <input type="number" data-field="weight" data-id="${item.id}" value="${item.weight}" min="0" step="0.5">
+          </div>
+          <div>
+            <label>Waste %</label>
+            <input type="number" data-field="waste" data-id="${item.id}" value="${item.waste * 100}" min="0" step="5">
+          </div>
+          <div>
+            <label>Consumables (₦)</label>
+            <input type="number" data-field="consumables" data-id="${item.id}" value="${item.consumables}" min="0" step="50">
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <label>Labor hours</label>
+            <input type="number" data-field="laborHours" data-id="${item.id}" value="${item.laborHours}" min="0" step="0.5">
+          </div>
+          <div>
+            <label>Labor rate (₦/hr)</label>
+            <input type="number" data-field="laborRate" data-id="${item.id}" value="${item.laborRate}" min="0" step="100">
+          </div>
+        </div>
+      `;
+      wrap.appendChild(div);
+    });
 
-  bindNumber('genHours', 'genHours');
-  bindNumber('fuelCostHr', 'fuelCostHr');
+    wrap.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => removeLineItem(parseFloat(btn.dataset.remove)));
+    });
 
-  bindNumber('transportCost', 'transportCost');
-  bindSelect('rushJob', 'rushJob');
+    wrap.querySelectorAll('[data-field]').forEach(el => {
+      const eventName = el.tagName === 'SELECT' ? 'change' : 'input';
+      el.addEventListener(eventName, () => {
+        const id = parseFloat(el.dataset.id);
+        const item = lineItems.find(l => l.id === id);
+        if (!item) return;
+        const field = el.dataset.field;
+        if (field === 'desc'){
+          item.desc = el.value;
+        } else if (field === 'matSelect'){
+          item.matPrice = parseFloat(el.value) || 0;
+          const priceInput = wrap.querySelector(`input[data-field="matPrice"][data-id="${id}"]`);
+          if (priceInput) priceInput.value = item.matPrice;
+        } else if (field === 'waste'){
+          item.waste = (parseFloat(el.value) || 0) / 100;
+        } else {
+          item[field] = parseFloat(el.value) || 0;
+        }
+        calculate();
+      });
+    });
+  }
 
-  bindNumber('paintLiters', 'paintLiters');
-  bindNumber('paintCost', 'paintCost');
+  document.getElementById('addLineBtn').addEventListener('click', () => addLineItem());
 
-  bindSelect('overhead', 'overhead');
-
+  // ---------- Job-level toggles ----------
   const powerDetail = document.getElementById('powerDetail');
   const finishDetail = document.getElementById('finishDetail');
 
@@ -634,7 +745,7 @@ select:focus, input:focus{
       btn.addEventListener('click', () => {
         buttons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        state[key] = isString ? btn.dataset.val : parseFloat(btn.dataset.val);
+        job[key] = isString ? btn.dataset.val : parseFloat(btn.dataset.val);
         if (onChange) onChange();
         calculate();
       });
@@ -642,47 +753,61 @@ select:focus, input:focus{
   }
 
   setupToggleGroup('powerSource', 'powerSource', true, () => {
-    powerDetail.classList.toggle('visible', state.powerSource !== 'grid');
+    powerDetail.classList.toggle('visible', job.powerSource !== 'grid');
   });
-
   setupToggleGroup('finishing', 'finishing', false, () => {
-    finishDetail.classList.toggle('visible', state.finishing === 1);
+    finishDetail.classList.toggle('visible', job.finishing === 1);
   });
-
   setupToggleGroup('margin', 'margin', false, null);
 
-  function formatNaira(n){
-    return '₦' + Math.round(n).toLocaleString('en-NG');
+  function bindNumber(id, key){
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => { job[key] = Math.max(0, parseFloat(el.value) || 0); calculate(); });
+  }
+  function bindSelect(id, key){
+    const el = document.getElementById(id);
+    el.addEventListener('change', () => { job[key] = parseFloat(el.value) || 0; calculate(); });
+  }
+  bindNumber('genHours','genHours');
+  bindNumber('fuelCostHr','fuelCostHr');
+  bindNumber('transportCost','transportCost');
+  bindSelect('rushJob','rushJob');
+  bindNumber('paintLiters','paintLiters');
+  bindNumber('paintCost','paintCost');
+  bindSelect('overhead','overhead');
+
+  document.getElementById('custName').addEventListener('input', calculate);
+  document.getElementById('jobRef').addEventListener('input', calculate);
+
+  // ---------- Calculation ----------
+  function formatNaira(n){ return '₦' + Math.round(n).toLocaleString('en-NG'); }
+
+  function computeLineTotal(item){
+    const materialCost = item.matPrice * item.weight * (1 + item.waste);
+    const laborCost = item.laborHours * item.laborRate;
+    return materialCost + laborCost + item.consumables;
   }
 
+  let lastResult = null;
+
   function calculate(){
-    const materialCost = state.matPrice * state.matWeight * (1 + state.waste);
-    const consumablesCost = (state.rodCount * state.rodPrice) + (state.discCount * state.discPrice);
-    const laborCost = state.workers * state.laborHours * state.laborRate;
+    const partsTotal = lineItems.reduce((sum, item) => sum + computeLineTotal(item), 0);
 
     let powerCost = 0;
-    if (state.powerSource !== 'grid'){
-      powerCost = state.genHours * state.fuelCostHr;
-    }
+    if (job.powerSource !== 'grid') powerCost = job.genHours * job.fuelCostHr;
 
-    const transportCost = state.transportCost;
-
+    const transportCost = job.transportCost;
     let finishingCost = 0;
-    if (state.finishing === 1){
-      finishingCost = state.paintLiters * state.paintCost;
-    }
+    if (job.finishing === 1) finishingCost = job.paintLiters * job.paintCost;
 
-    const subtotal = materialCost + consumablesCost + laborCost + powerCost + transportCost + finishingCost;
-    const overheadCost = subtotal * state.overhead;
+    const subtotal = partsTotal + powerCost + transportCost + finishingCost;
+    const overheadCost = subtotal * job.overhead;
     const baseCost = subtotal + overheadCost;
-
-    const rushSurcharge = baseCost * state.rushJob;
-    const quote = (baseCost + rushSurcharge) * (1 + state.margin);
+    const rushSurcharge = baseCost * job.rushJob;
+    const quote = (baseCost + rushSurcharge) * (1 + job.margin);
     const deposit = quote * 0.5;
 
-    document.getElementById('outMaterial').textContent = formatNaira(materialCost);
-    document.getElementById('outConsumables').textContent = formatNaira(consumablesCost);
-    document.getElementById('outLabor').textContent = formatNaira(laborCost);
+    document.getElementById('outParts').textContent = formatNaira(partsTotal);
     document.getElementById('outPower').textContent = formatNaira(powerCost);
     document.getElementById('outTransport').textContent = formatNaira(transportCost);
     document.getElementById('outFinishing').textContent = formatNaira(finishingCost);
@@ -690,8 +815,180 @@ select:focus, input:focus{
     document.getElementById('outBase').textContent = formatNaira(baseCost);
     document.getElementById('outQuote').textContent = formatNaira(quote);
     document.getElementById('outDeposit').textContent = formatNaira(deposit);
+
+    // proportionally allocate the quote across line items for customer-facing itemization
+    const scaleFactor = partsTotal > 0 ? quote / (partsTotal + powerCost + transportCost + finishingCost) : 1;
+    const customerLines = lineItems.map(item => ({
+      desc: item.desc || 'Job part',
+      price: computeLineTotal(item) * scaleFactor
+    }));
+    if (powerCost > 0) customerLines.push({desc:'Power / logistics', price: powerCost * scaleFactor});
+    if (transportCost > 0) customerLines.push({desc:'Transport', price: transportCost * scaleFactor});
+    if (finishingCost > 0) customerLines.push({desc:'Finishing', price: finishingCost * scaleFactor});
+
+    lastResult = {
+      customerName: document.getElementById('custName').value || 'Customer',
+      jobRef: document.getElementById('jobRef').value || 'Fabrication job',
+      lines: customerLines,
+      total: quote,
+      deposit: deposit,
+      date: new Date().toLocaleDateString('en-NG')
+    };
   }
 
+  // ---------- Business settings ----------
+  function loadBiz(){
+    const biz = JSON.parse(localStorage.getItem('fabcalc_biz') || '{}');
+    document.getElementById('bizName').value = biz.name || '';
+    document.getElementById('bizPhone').value = biz.phone || '';
+    document.getElementById('bizLocation').value = biz.location || '';
+  }
+  document.getElementById('saveBizBtn').addEventListener('click', () => {
+    const biz = {
+      name: document.getElementById('bizName').value,
+      phone: document.getElementById('bizPhone').value,
+      location: document.getElementById('bizLocation').value
+    };
+    localStorage.setItem('fabcalc_biz', JSON.stringify(biz));
+    document.getElementById('saveBizBtn').textContent = 'Saved ✓';
+    setTimeout(() => { document.getElementById('saveBizBtn').textContent = 'Save business details'; }, 1500);
+  });
+
+  function getBiz(){
+    return JSON.parse(localStorage.getItem('fabcalc_biz') || '{}');
+  }
+
+  // ---------- Save / history ----------
+  function getHistory(){
+    return JSON.parse(localStorage.getItem('fabcalc_history') || '[]');
+  }
+  function setHistory(arr){
+    localStorage.setItem('fabcalc_history', JSON.stringify(arr));
+  }
+
+  document.getElementById('saveJobBtn').addEventListener('click', () => {
+    calculate();
+    const history = getHistory();
+    history.unshift({
+      id: Date.now(),
+      customerName: lastResult.customerName,
+      jobRef: lastResult.jobRef,
+      total: lastResult.total,
+      deposit: lastResult.deposit,
+      date: lastResult.date,
+      lineItems: JSON.parse(JSON.stringify(lineItems)),
+      job: JSON.parse(JSON.stringify(job)),
+      custName: document.getElementById('custName').value,
+      jobRefRaw: document.getElementById('jobRef').value
+    });
+    setHistory(history);
+    document.getElementById('saveJobBtn').textContent = 'Saved ✓';
+    setTimeout(() => { document.getElementById('saveJobBtn').textContent = 'Save this quote'; }, 1500);
+  });
+
+  function renderHistory(){
+    const list = document.getElementById('historyList');
+    const history = getHistory();
+    if (history.length === 0){
+      list.innerHTML = '<div class="history-empty">No saved quotes yet. Build a quote in the Calculator tab and hit "Save this quote".</div>';
+      return;
+    }
+    list.innerHTML = history.map(h => `
+      <div class="history-item">
+        <div class="hinfo">
+          <span class="hname">${escapeAttr(h.custName || 'Customer')} — ${escapeAttr(h.jobRefRaw || 'Job')}</span>
+          ${h.date} &middot; <span class="htotal">${formatNaira(h.total)}</span>
+        </div>
+        <div class="history-btns">
+          <button class="mini-btn" data-load="${h.id}">Load</button>
+          <button class="mini-btn danger" data-del="${h.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-load]').forEach(btn => {
+      btn.addEventListener('click', () => loadJob(parseFloat(btn.dataset.load)));
+    });
+    list.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setHistory(getHistory().filter(h => h.id !== parseFloat(btn.dataset.del)));
+        renderHistory();
+      });
+    });
+  }
+
+  function loadJob(id){
+    const h = getHistory().find(x => x.id === id);
+    if (!h) return;
+    document.getElementById('custName').value = h.custName || '';
+    document.getElementById('jobRef').value = h.jobRefRaw || '';
+    lineItems = JSON.parse(JSON.stringify(h.lineItems));
+    lineIdCounter = Math.max(...lineItems.map(l => l.id), 0) + 1;
+    Object.assign(job, h.job);
+
+    // sync UI toggles/inputs to loaded job state
+    document.getElementById('genHours').value = job.genHours;
+    document.getElementById('fuelCostHr').value = job.fuelCostHr;
+    document.getElementById('transportCost').value = job.transportCost;
+    document.getElementById('rushJob').value = job.rushJob;
+    document.getElementById('paintLiters').value = job.paintLiters;
+    document.getElementById('paintCost').value = job.paintCost;
+    document.getElementById('overhead').value = job.overhead;
+
+    document.querySelectorAll('#powerSource button').forEach(b => b.classList.toggle('active', b.dataset.val === job.powerSource));
+    powerDetail.classList.toggle('visible', job.powerSource !== 'grid');
+    document.querySelectorAll('#finishing button').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.val) === job.finishing));
+    finishDetail.classList.toggle('visible', job.finishing === 1);
+    document.querySelectorAll('#margin button').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.val) === job.margin));
+
+    renderLineItems();
+    calculate();
+
+    document.querySelectorAll('.tabbar button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel-view').forEach(v => v.classList.remove('active'));
+    document.querySelector('.tabbar button[data-tab="calc"]').classList.add('active');
+    document.getElementById('view-calc').classList.add('active');
+  }
+
+  // ---------- Print / download customer quote ----------
+  function buildPrintSheet(){
+    calculate();
+    const biz = getBiz();
+    document.getElementById('pBizName').textContent = biz.name || 'Your Business Name';
+    document.getElementById('pBizContact').textContent = [biz.phone, biz.location].filter(Boolean).join(' \u00b7 ') || 'Add your phone & location in "My business"';
+    document.getElementById('pMeta').textContent = `Quote for: ${lastResult.customerName} \u00b7 ${lastResult.jobRef} \u00b7 Date: ${lastResult.date}`;
+    document.getElementById('pLines').innerHTML = lastResult.lines.map(l =>
+      `<tr><td>${escapeAttr(l.desc)}</td><td style="text-align:right;">${formatNaira(l.price)}</td></tr>`
+    ).join('');
+    document.getElementById('pTotal').textContent = 'Total: ' + formatNaira(lastResult.total);
+    document.getElementById('pDeposit').textContent = 'Suggested deposit (50%): ' + formatNaira(lastResult.deposit);
+  }
+
+  document.getElementById('printBtn').addEventListener('click', () => {
+    buildPrintSheet();
+    window.print();
+  });
+
+  document.getElementById('waBtn').addEventListener('click', () => {
+    calculate();
+    const biz = getBiz();
+    let msg = `*${biz.name || 'Fabrication Quote'}*\n${lastResult.jobRef} — ${lastResult.customerName}\n\n`;
+    lastResult.lines.forEach(l => { msg += `${l.desc}: ${formatNaira(l.price)}\n`; });
+    msg += `\n*Total: ${formatNaira(lastResult.total)}*\nSuggested deposit (50%): ${formatNaira(lastResult.deposit)}`;
+    if (biz.phone) msg += `\n\nContact: ${biz.phone}`;
+    const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    window.open(url, '_blank');
+  });
+
+  function escapeAttr(str){
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  // ---------- Init ----------
+  loadBiz();
+  addLineItem();
   calculate();
 })();
 </script>
