@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quote Comparator — Pick the Right Supplier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0f1a;
+    --grid: rgba(120,170,255,0.06);
+    --panel: #0f1626;
+    --panel-border: #1c2740;
+    --ink: #e7edf7;
+    --ink-dim: #8fa0c0;
+    --accent: #35e2c8;
+    --accent-dim: #1a4a45;
+    --warn: #ffb454;
+    --danger: #ff6b6b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/32px 32px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/32px 32px,
+      var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+    min-height:100vh;
+    padding:24px 16px 80px;
+  }
+  .wrap{max-width:900px;margin:0 auto;}
+  header{margin-bottom:28px;}
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:1.6rem;
+    font-weight:700;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .sub{color:var(--ink-dim);font-size:0.92rem;line-height:1.5;max-width:60ch;}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:6px;
+    padding:20px;
+    margin-bottom:20px;
+  }
+  .panel-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:0.95rem;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 14px;
+  }
+
+  form{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  form .full{grid-column:1/-1;}
+  label{
+    display:block;
+    font-size:0.72rem;
+    color:var(--ink-dim);
+    margin-bottom:4px;
+  }
+  input, select, textarea{
+    width:100%;
+    background:#0a1120;
+    border:1px solid var(--panel-border);
+    border-radius:4px;
+    color:var(--ink);
+    padding:9px 10px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.88rem;
+  }
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  textarea{resize:vertical;min-height:44px;}
+
+  button{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:0.88rem;
+    border:none;
+    border-radius:4px;
+    padding:11px 18px;
+    cursor:pointer;
+    transition:transform .08s ease;
+  }
+  button:active{transform:scale(0.98);}
+  .btn-add{
+    background:var(--accent);
+    color:#04231e;
+    grid-column:1/-1;
+    margin-top:4px;
+  }
+  .btn-add:hover{background:#4eebd1;}
+
+  .weights{display:grid;grid-template-columns:1fr;gap:14px;}
+  .weight-row{display:flex;align-items:center;gap:12px;}
+  .weight-row .wlabel{width:120px;font-size:0.8rem;color:var(--ink-dim);flex-shrink:0;}
+  input[type=range]{
+    -webkit-appearance:none;
+    height:4px;
+    background:var(--panel-border);
+    border-radius:2px;
+    flex:1;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--accent);
+    cursor:pointer;
+    border:2px solid #04231e;
+  }
+  .wval{width:42px;text-align:right;color:var(--accent);font-size:0.82rem;}
+
+  .table-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem;min-width:560px;}
+  th, td{
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--panel-border);
+    white-space:nowrap;
+  }
+  th{
+    color:var(--ink-dim);
+    font-weight:500;
+    font-size:0.72rem;
+    text-transform:none;
+  }
+  tr.best{background:rgba(53,226,200,0.07);}
+  tr.best td:first-child{position:relative;padding-left:22px;}
+  tr.best td:first-child::before{
+    content:"★";
+    position:absolute;
+    left:6px;
+    color:var(--accent);
+  }
+  .tag{
+    display:inline-block;
+    font-size:0.68rem;
+    padding:2px 7px;
+    border-radius:3px;
+    background:var(--accent-dim);
+    color:var(--accent);
+  }
+  .del{
+    background:transparent;
+    color:var(--ink-dim);
+    border:1px solid var(--panel-border);
+    padding:4px 9px;
+    font-size:0.72rem;
+    border-radius:4px;
+  }
+  .del:hover{color:var(--danger);border-color:var(--danger);}
+
+  .dl-btn{
+    background:transparent;
+    border:1px solid var(--panel-border);
+    color:var(--ink-dim);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:0.76rem;
+    font-weight:600;
+    padding:7px 12px;
+    border-radius:4px;
+  }
+  .dl-btn:hover{color:var(--accent);border-color:var(--accent);}
+
+  @media print{
+    body{background:#fff;color:#000;padding:0;}
+    body::before{display:none;}
+    .panel{border:1px solid #ccc;background:#fff;box-shadow:none;}
+    .panel-title, .sub, h1{color:#000;}
+    form, .weights, #downloadBtns, footer{display:none !important;}
+    tr.best{background:#eafaf6;}
+    tr.best td:first-child::before{color:#0a8f7c;}
+    .tag{background:#e8e8e8;color:#333;}
+  }
+
+  .empty{
+    color:var(--ink-dim);
+    font-size:0.85rem;
+    text-align:center;
+    padding:30px 10px;
+  }
+
+  .recommend{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:linear-gradient(135deg, rgba(53,226,200,0.10), rgba(53,226,200,0.02));
+    border:1px solid var(--accent-dim);
+    border-radius:6px;
+    padding:16px 18px;
+    margin-bottom:20px;
+  }
+  .recommend .star{font-size:1.6rem;color:var(--accent);}
+  .recommend .rtext{font-size:0.88rem;line-height:1.5;color:var(--ink);}
+  .recommend .rtext b{color:var(--accent);}
+
+  footer{
+    text-align:center;
+    color:var(--ink-dim);
+    font-size:0.72rem;
+    margin-top:36px;
+  }
+
+  @media (max-width:520px){
+    form{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Quote Comparator</h1>
+    <div class="sub">Add every supplier's quote as it comes in. See price, delivery time, and payment terms side by side — no more losing track across WhatsApp threads.</div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-title">Add a supplier quote</div>
+    <form id="quoteForm">
+      <div>
+        <label>Supplier name</label>
+        <input type="text" id="fName" placeholder="e.g. Alaba Steel Works" required>
+      </div>
+      <div>
+        <label>Price quoted (₦)</label>
+        <input type="number" id="fPrice" placeholder="e.g. 185000" min="0" required>
+      </div>
+      <div>
+        <label>Delivery time (days)</label>
+        <input type="number" id="fDays" placeholder="e.g. 5" min="0" required>
+      </div>
+      <div>
+        <label>Payment terms</label>
+        <select id="fTerms">
+          <option value="Full upfront">Full upfront</option>
+          <option value="50% deposit">50% deposit</option>
+          <option value="30% deposit">30% deposit</option>
+          <option value="Net 30" selected>Net 30</option>
+          <option value="On delivery">On delivery</option>
+        </select>
+      </div>
+      <div class="full">
+        <label>Notes (quality, reliability, anything else)</label>
+        <textarea id="fNotes" placeholder="Optional"></textarea>
+      </div>
+      <button type="submit" class="btn-add">Add supplier</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">What matters most to you?</div>
+    <div class="weights">
+      <div class="weight-row">
+        <span class="wlabel">Price</span>
+        <input type="range" id="wPrice" min="0" max="10" value="5">
+        <span class="wval" id="wPriceVal">5</span>
+      </div>
+      <div class="weight-row">
+        <span class="wlabel">Delivery speed</span>
+        <input type="range" id="wSpeed" min="0" max="10" value="5">
+        <span class="wval" id="wSpeedVal">5</span>
+      </div>
+      <div class="weight-row">
+        <span class="wlabel">Payment ease</span>
+        <input type="range" id="wTerms" min="0" max="10" value="5">
+        <span class="wval" id="wTermsVal">5</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="recommendBox"></div>
+
+  <div class="panel">
+    <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <span>Comparison</span>
+      <div id="downloadBtns" style="display:flex;gap:8px;"></div>
+    </div>
+    <div class="table-scroll" id="tableWrap">
+      <div class="empty">No suppliers added yet. Add your first quote above.</div>
+    </div>
+  </div>
+
+  <footer>Nothing you enter here is sent anywhere — it stays on this page.</footer>
+</div>
+
+<script>
+let suppliers = [];
+let nextId = 1;
+
+const termsScore = {
+  "Full upfront": 1,
+  "50% deposit": 2,
+  "30% deposit": 3,
+  "Net 30": 5,
+  "On delivery": 5
+};
+
+const form = document.getElementById('quoteForm');
+const tableWrap = document.getElementById('tableWrap');
+const recommendBox = document.getElementById('recommendBox');
+
+const wPrice = document.getElementById('wPrice');
+const wSpeed = document.getElementById('wSpeed');
+const wTerms = document.getElementById('wTerms');
+[wPrice, wSpeed, wTerms].forEach(el => {
+  const valEl = document.getElementById(el.id + 'Val');
+  el.addEventListener('input', () => { valEl.textContent = el.value; render(); });
+});
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('fName').value.trim();
+  const price = parseFloat(document.getElementById('fPrice').value);
+  const days = parseFloat(document.getElementById('fDays').value);
+  const terms = document.getElementById('fTerms').value;
+  const notes = document.getElementById('fNotes').value.trim();
+  if (!name || isNaN(price) || isNaN(days)) return;
+
+  suppliers.push({ id: nextId++, name, price, days, terms, notes });
+  form.reset();
+  render();
+});
+
+function removeSupplier(id){
+  suppliers = suppliers.filter(s => s.id !== id);
+  render();
+}
+
+function computeScores(){
+  if (suppliers.length === 0) return [];
+  const minPrice = Math.min(...suppliers.map(s => s.price));
+  const maxPrice = Math.max(...suppliers.map(s => s.price));
+  const minDays = Math.min(...suppliers.map(s => s.days));
+  const maxDays = Math.max(...suppliers.map(s => s.days));
+
+  const pw = parseFloat(wPrice.value), sw = parseFloat(wSpeed.value), tw = parseFloat(wTerms.value);
+  const totalW = pw + sw + tw || 1;
+
+  return suppliers.map(s => {
+    const priceScore = maxPrice === minPrice ? 1 : 1 - (s.price - minPrice) / (maxPrice - minPrice);
+    const speedScore = maxDays === minDays ? 1 : 1 - (s.days - minDays) / (maxDays - minDays);
+    const termsScoreVal = termsScore[s.terms] / 5;
+    const total = (priceScore * pw + speedScore * sw + termsScoreVal * tw) / totalW;
+    return { ...s, total };
+  }).sort((a, b) => b.total - a.total);
+}
+
+function fmtNaira(n){
+  return '₦' + n.toLocaleString('en-NG');
+}
+
+function render(){
+  const scored = computeScores();
+
+  const downloadBtns = document.getElementById('downloadBtns');
+
+  if (scored.length === 0){
+    tableWrap.innerHTML = '<div class="empty">No suppliers added yet. Add your first quote above.</div>';
+    recommendBox.innerHTML = '';
+    downloadBtns.innerHTML = '';
+    return;
+  }
+
+  downloadBtns.innerHTML = `
+    <button class="dl-btn" onclick="downloadCSV()">Download CSV</button>
+    <button class="dl-btn" onclick="window.print()">Save as PDF</button>
+  `;
+
+  const bestId = scored[0].id;
+
+  let rows = scored.map(s => `
+    <tr class="${s.id === bestId ? 'best' : ''}">
+      <td>${escapeHtml(s.name)}</td>
+      <td>${fmtNaira(s.price)}</td>
+      <td>${s.days} day${s.days === 1 ? '' : 's'}</td>
+      <td><span class="tag">${escapeHtml(s.terms)}</span></td>
+      <td>${escapeHtml(s.notes) || '—'}</td>
+      <td><button class="del" onclick="removeSupplier(${s.id})">Remove</button></td>
+    </tr>
+  `).join('');
+
+  tableWrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Supplier</th>
+          <th>Price</th>
+          <th>Delivery</th>
+          <th>Terms</th>
+          <th>Notes</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+
+  if (scored.length >= 2){
+    const best = scored[0];
+    recommendBox.innerHTML = `
+      <div class="recommend">
+        <div class="star">★</div>
+        <div class="rtext">Based on your priorities, <b>${escapeHtml(best.name)}</b> is the strongest pick — ${fmtNaira(best.price)}, ${best.days} day${best.days === 1 ? '' : 's'} delivery, ${escapeHtml(best.terms).toLowerCase()}.</div>
+      </div>
+    `;
+  } else {
+    recommendBox.innerHTML = '';
+  }
+}
+
+function downloadCSV(){
+  const scored = computeScores();
+  if (scored.length === 0) return;
+
+  const headers = ['Supplier', 'Price (NGN)', 'Delivery (days)', 'Payment Terms', 'Notes', 'Recommended'];
+  const rows = scored.map((s, i) => [
+    s.name,
+    s.price,
+    s.days,
+    s.terms,
+    s.notes || '',
+    i === 0 ? 'Yes' : ''
+  ]);
+
+  const csvLines = [headers, ...rows].map(row =>
+    row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+  );
+  const csvContent = csvLines.join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'quote-comparison.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+render();
+</script>
+</body>
+</html>
