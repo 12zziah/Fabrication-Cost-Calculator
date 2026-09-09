@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice &amp; Payment Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --blueprint-navy: #0b2036;
+  --blueprint-deep: #071522;
+  --blueprint-line: #2f5f7a;
+  --blueprint-cyan: #6fd0e0;
+  --blueprint-cyan-dim: #3f8ea3;
+  --paper: #eef3f2;
+  --paper-dim: #b9c9cd;
+  --amber: #e0a53d;
+  --danger: #d97757;
+  --good: #6fd0a0;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--blueprint-deep);
+  background-image:
+    linear-gradient(var(--blueprint-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--blueprint-line) 1px, transparent 1px);
+  background-size:28px 28px;
+  background-position:-1px -1px;
+  color:var(--paper);
+  font-family:'IBM Plex Sans', sans-serif;
+  min-height:100vh;
+  padding:32px 16px;
+}
+.sheet{
+  max-width:1080px;
+  margin:0 auto;
+  border:1.5px solid var(--blueprint-cyan-dim);
+  background:rgba(11,32,54,0.55);
+  backdrop-filter:blur(2px);
+  position:relative;
+}
+.sheet::before{content:"";position:absolute;inset:8px;border:1px solid var(--blueprint-line);pointer-events:none;}
+
+.titleblock{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:22px 28px 16px;border-bottom:1.5px solid var(--blueprint-cyan-dim);
+  flex-wrap:wrap;gap:12px;
+}
+.titleblock .left h1{
+  font-family:'Oswald', sans-serif;font-weight:600;font-size:26px;
+  letter-spacing:0.02em;margin:0 0 4px;color:var(--paper);text-transform:uppercase;
+}
+.titleblock .left p{margin:0;font-family:'IBM Plex Mono', monospace;font-size:12px;color:var(--blueprint-cyan);letter-spacing:0.05em;}
+.titleblock .right{text-align:right;font-family:'IBM Plex Mono', monospace;font-size:11px;color:var(--paper-dim);line-height:1.6;}
+.titleblock .right .rev{color:var(--amber);}
+
+.tabbar{display:flex;border-bottom:1.5px solid var(--blueprint-cyan-dim);}
+.tabbar button{
+  flex:1;background:transparent;border:none;border-right:1px solid var(--blueprint-line);
+  color:var(--paper-dim);font-family:'IBM Plex Mono', monospace;font-size:12px;
+  letter-spacing:0.06em;text-transform:uppercase;padding:12px 8px;cursor:pointer;
+}
+.tabbar button:last-child{border-right:none;}
+.tabbar button.active{background:rgba(111,208,224,0.08);color:var(--blueprint-cyan);font-weight:600;}
+
+.panel-view{display:none;padding:26px 28px;}
+.panel-view.active{display:block;}
+
+.section-label{
+  font-family:'IBM Plex Mono', monospace;font-size:10px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--amber);margin:0 0 14px;padding-bottom:6px;
+  border-bottom:1px dashed var(--blueprint-line);display:flex;justify-content:space-between;align-items:center;
+}
+.section-label:not(:first-child){margin-top:24px;}
+
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media (max-width:640px){.summary-row{grid-template-columns:1fr;}}
+.summary-card{border:1px dashed var(--blueprint-cyan-dim);padding:16px;text-align:center;}
+.summary-card .label{font-family:'IBM Plex Mono', monospace;font-size:10.5px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:0.06em;}
+.summary-card .num{font-family:'Oswald', sans-serif;font-size:26px;font-weight:600;color:var(--amber);margin-top:6px;}
+.summary-card.warn .num{color:var(--danger);}
+.summary-card.ok .num{color:var(--good);}
+
+.field{margin-bottom:16px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field-row.three{grid-template-columns:1fr 1fr 1fr;}
+.field label{
+  display:block;font-family:'IBM Plex Mono', monospace;font-size:11px;
+  letter-spacing:0.06em;text-transform:uppercase;color:var(--blueprint-cyan);margin-bottom:8px;
+}
+select, input[type="number"], input[type="text"], input[type="date"]{
+  width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--blueprint-line);
+  color:var(--paper);padding:9px 10px;font-family:'IBM Plex Mono', monospace;font-size:13.5px;border-radius:2px;
+}
+select:focus, input:focus{outline:2px solid var(--blueprint-cyan);outline-offset:1px;border-color:var(--blueprint-cyan);}
+
+.toggle-row{display:flex;gap:8px;flex-wrap:wrap;}
+.toggle-row button{
+  flex:1;min-width:100px;background:rgba(255,255,255,0.03);border:1px solid var(--blueprint-line);
+  color:var(--paper-dim);padding:9px 6px;font-family:'IBM Plex Mono', monospace;font-size:11.5px;
+  cursor:pointer;border-radius:2px;transition:all 0.15s ease;
+}
+.toggle-row button:hover{border-color:var(--blueprint-cyan-dim);color:var(--paper);}
+.toggle-row button.active{background:var(--blueprint-cyan-dim);border-color:var(--blueprint-cyan);color:var(--blueprint-deep);font-weight:600;}
+
+.mini-btn{
+  background:transparent;border:1px solid var(--blueprint-cyan-dim);color:var(--blueprint-cyan);
+  font-family:'IBM Plex Mono', monospace;font-size:10.5px;letter-spacing:0.04em;
+  padding:6px 12px;cursor:pointer;border-radius:2px;
+}
+.mini-btn:hover{background:rgba(111,208,224,0.1);}
+.mini-btn.danger{border-color:var(--danger);color:var(--danger);}
+.mini-btn.danger:hover{background:rgba(217,119,87,0.1);}
+.mini-btn.good{border-color:var(--good);color:var(--good);}
+.mini-btn.good:hover{background:rgba(111,208,160,0.1);}
+
+.btn-primary{
+  background:var(--amber);border:1px solid var(--amber);color:var(--blueprint-deep);
+  font-weight:700;font-family:'IBM Plex Mono', monospace;font-size:12px;letter-spacing:0.04em;
+  padding:11px 18px;border-radius:2px;cursor:pointer;text-transform:uppercase;
+}
+.btn-primary:hover{background:#eeb654;}
+
+.import-box{
+  border:1px dashed var(--blueprint-cyan-dim);padding:14px 16px;margin-bottom:20px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+}
+.import-box .itxt{font-size:12.5px;color:var(--paper-dim);}
+
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:760px;}
+th, td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--blueprint-line);white-space:nowrap;}
+th{font-family:'IBM Plex Mono', monospace;font-size:10.5px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:0.05em;}
+tr.overdue{background:rgba(217,119,87,0.08);}
+tr.paid{opacity:0.65;}
+
+.badge{
+  display:inline-block;font-family:'IBM Plex Mono', monospace;font-size:10.5px;
+  padding:3px 9px;border-radius:3px;letter-spacing:0.03em;text-transform:uppercase;
+}
+.badge.pending{background:rgba(224,165,61,0.15);color:var(--amber);}
+.badge.partial{background:rgba(111,208,224,0.15);color:var(--blueprint-cyan);}
+.badge.paid{background:rgba(111,208,160,0.15);color:var(--good);}
+.badge.overdue{background:rgba(217,119,87,0.18);color:var(--danger);}
+
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+.empty{color:var(--paper-dim);font-size:13px;text-align:center;padding:30px 10px;border:1px dashed var(--blueprint-line);}
+
+.settings-panel{max-width:480px;}
+.hint{font-size:11px;color:var(--paper-dim);margin-top:6px;line-height:1.4;}
+
+/* Print sheet (receipt / reminder) */
+#printSheet{display:none;}
+@media print{
+  body *{visibility:hidden;}
+  #printSheet, #printSheet *{visibility:visible;}
+  #printSheet{
+    display:block;position:absolute;top:0;left:0;width:100%;
+    background:#fff;color:#111;padding:30px;font-family:'IBM Plex Sans', sans-serif;
+  }
+  #printSheet h2{font-family:'Oswald',sans-serif;font-size:22px;margin:0 0 2px;}
+  #printSheet .p-tag{
+    display:inline-block;font-size:13px;font-weight:700;padding:4px 10px;border-radius:3px;margin-bottom:14px;
+  }
+  #printSheet .p-tag.receipt{background:#dff5ea;color:#0a7a4a;}
+  #printSheet .p-tag.reminder{background:#fdeadf;color:#b8531f;}
+  #printSheet .biz{color:#555;font-size:13px;margin-bottom:16px;}
+  #printSheet table{width:100%;border-collapse:collapse;margin-bottom:14px;}
+  #printSheet th, #printSheet td{text-align:left;padding:8px 6px;border-bottom:1px solid #ddd;font-size:13px;}
+  #printSheet .p-total{font-size:18px;font-weight:700;text-align:right;margin-top:6px;}
+  #printSheet .p-meta{font-size:12px;color:#777;margin-bottom:14px;}
+}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <div class="titleblock">
+    <div class="left">
+      <h1>Invoice &amp; Payment Tracker</h1>
+      <p>Know who owes what, before it becomes a problem</p>
+    </div>
+    <div class="right">
+      DWG NO. FAB&#8209;003<br>
+      SHEET 1/1<br>
+      <span class="rev">REV A</span>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <button data-tab="dash" class="active">Dashboard</button>
+    <button data-tab="add">New invoice</button>
+    <button data-tab="settings">My business</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="panel-view active" id="view-dash">
+    <div class="summary-row">
+      <div class="summary-card"><div class="label">Total invoices</div><div class="num" id="sumCount">0</div></div>
+      <div class="summary-card warn"><div class="label">Outstanding</div><div class="num" id="sumOutstanding">&#8358;0</div></div>
+      <div class="summary-card ok"><div class="label">Collected</div><div class="num" id="sumCollected">&#8358;0</div></div>
+    </div>
+    <p class="section-label">All invoices</p>
+    <div class="table-scroll" id="dashTableWrap">
+      <div class="empty">No invoices yet. Create one in the "New invoice" tab.</div>
+    </div>
+  </div>
+
+  <!-- NEW INVOICE -->
+  <div class="panel-view" id="view-add">
+    <div class="import-box">
+      <span class="itxt">Pull in a job you already priced in the Fabrication Calculator.</span>
+      <button class="mini-btn" id="importBtn">Import from saved quotes</button>
+    </div>
+    <div id="importList" style="display:none;margin-bottom:20px;"></div>
+
+    <p class="section-label">Invoice details</p>
+    <div class="field">
+      <div class="field-row">
+        <div>
+          <label>Customer name</label>
+          <input type="text" id="fCustomer" placeholder="e.g. Mr. Adewale">
+        </div>
+        <div>
+          <label>Job description</label>
+          <input type="text" id="fJob" placeholder="e.g. Compound gate">
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-row">
+        <div>
+          <label>Total amount (&#8358;)</label>
+          <input type="number" id="fTotal" min="0" step="100" placeholder="e.g. 45000">
+        </div>
+        <div>
+          <label>Deposit already paid (&#8358;)</label>
+          <input type="number" id="fDeposit" min="0" step="100" value="0">
+        </div>
+      </div>
+    </div>
+
+    <p class="section-label">Balance due date</p>
+    <div class="field">
+      <div class="toggle-row" id="dueMode">
+        <button type="button" data-val="fixed" class="active">Fixed &#8212; 7 days from today</button>
+        <button type="button" data-val="custom">Custom date</button>
+      </div>
+      <div id="customDateBox" style="display:none;margin-top:10px;">
+        <input type="date" id="fCustomDate">
+      </div>
+      <p class="hint">Balance is considered overdue automatically once this date passes and it's not marked fully paid.</p>
+    </div>
+
+    <button class="btn-primary" id="saveInvoiceBtn">Create invoice</button>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="panel-view" id="view-settings">
+    <div class="settings-panel">
+      <p class="section-label">Your business details</p>
+      <p class="hint" style="margin-bottom:16px;">Shared with your Fabrication Calculator &mdash; saved on this device, auto-included on every receipt/reminder.</p>
+      <div class="field">
+        <label>Business / your name</label>
+        <input type="text" id="bizName" placeholder="e.g. Adewale Fabrication Works">
+      </div>
+      <div class="field">
+        <label>Phone number</label>
+        <input type="text" id="bizPhone" placeholder="e.g. 0803 000 0000">
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <input type="text" id="bizLocation" placeholder="e.g. Ikeja, Lagos">
+      </div>
+      <button class="mini-btn" id="saveBizBtn" style="padding:9px 16px;">Save business details</button>
+    </div>
+  </div>
+</div>
+
+<div id="printSheet">
+  <span class="p-tag" id="pTag">RECEIPT</span>
+  <h2 id="pBizName">Your Business Name</h2>
+  <div class="biz" id="pBizContact">Phone &middot; Location</div>
+  <div class="p-meta" id="pMeta">—</div>
+  <table>
+    <thead><tr><th>Description</th><th style="text-align:right;">Amount</th></tr></thead>
+    <tbody id="pLines"></tbody>
+  </table>
+  <div class="p-total" id="pTotal">Total: &#8358;0</div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'fabcalc_invoices';
+  const CALC_HISTORY_KEY = 'fabcalc_history';
+  const BIZ_KEY = 'fabcalc_biz';
+
+  let invoices = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  let dueMode = 'fixed';
+  let idCounter = Date.now();
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tabbar button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabbar button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel-view').forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('view-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'dash') renderDashboard();
+    });
+  });
+
+  // ---------- Due date toggle ----------
+  const customDateBox = document.getElementById('customDateBox');
+  document.querySelectorAll('#dueMode button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#dueMode button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      dueMode = btn.dataset.val;
+      customDateBox.style.display = dueMode === 'custom' ? 'block' : 'none';
+    });
+  });
+
+  // ---------- Import from calculator ----------
+  document.getElementById('importBtn').addEventListener('click', () => {
+    const history = JSON.parse(localStorage.getItem(CALC_HISTORY_KEY) || '[]');
+    const importList = document.getElementById('importList');
+    if (history.length === 0){
+      importList.style.display = 'block';
+      importList.innerHTML = '<div class="empty">No saved quotes found in the Fabrication Calculator on this device. Save a quote there first, or fill this form manually below.</div>';
+      return;
+    }
+    importList.style.display = 'block';
+    importList.innerHTML = '<p class="section-label">Pick a saved quote</p>' + history.map(h => `
+      <div style="border:1px solid var(--blueprint-line);padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:12.5px;">${escapeHtml(h.custName || 'Customer')} &mdash; ${escapeHtml(h.jobRefRaw || 'Job')} &middot; &#8358;${Math.round(h.total).toLocaleString('en-NG')}</span>
+        <button class="mini-btn good" data-import="${h.id}">Use this</button>
+      </div>
+    `).join('');
+    importList.querySelectorAll('[data-import]').forEach(b => {
+      b.addEventListener('click', () => {
+        const item = history.find(h => h.id === parseFloat(b.dataset.import));
+        if (!item) return;
+        document.getElementById('fCustomer').value = item.custName || '';
+        document.getElementById('fJob').value = item.jobRefRaw || '';
+        document.getElementById('fTotal').value = Math.round(item.total);
+        document.getElementById('fDeposit').value = Math.round(item.deposit || 0);
+        importList.style.display = 'none';
+      });
+    });
+  });
+
+  // ---------- Create invoice ----------
+  document.getElementById('saveInvoiceBtn').addEventListener('click', () => {
+    const customer = document.getElementById('fCustomer').value.trim();
+    const job = document.getElementById('fJob').value.trim();
+    const total = parseFloat(document.getElementById('fTotal').value);
+    const deposit = parseFloat(document.getElementById('fDeposit').value) || 0;
+    if (!customer || !job || isNaN(total) || total <= 0){
+      alert('Please fill in customer, job description, and a valid total amount.');
+      return;
+    }
+
+    let dueDate;
+    if (dueMode === 'fixed'){
+      const d = new Date();
+      d.setDate(d.getDate() + 7);
+      dueDate = d.toISOString().split('T')[0];
+    } else {
+      dueDate = document.getElementById('fCustomDate').value;
+      if (!dueDate){ alert('Please pick a custom due date.'); return; }
+    }
+
+    invoices.push({
+      id: idCounter++,
+      customer, job, total, deposit,
+      balancePaidFlag: false,
+      dueDate,
+      createdDate: new Date().toISOString().split('T')[0]
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(invoices));
+
+    // reset form
+    document.getElementById('fCustomer').value = '';
+    document.getElementById('fJob').value = '';
+    document.getElementById('fTotal').value = '';
+    document.getElementById('fDeposit').value = '0';
+    document.getElementById('importList').style.display = 'none';
+
+    document.querySelectorAll('.tabbar button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel-view').forEach(v => v.classList.remove('active'));
+    document.querySelector('.tabbar button[data-tab="dash"]').classList.add('active');
+    document.getElementById('view-dash').classList.add('active');
+    renderDashboard();
+  });
+
+  // ---------- Dashboard ----------
+  function formatNaira(n){ return '&#8358;' + Math.round(n).toLocaleString('en-NG'); }
+  function formatNairaText(n){ return '₦' + Math.round(n).toLocaleString('en-NG'); }
+
+  function getStatus(inv){
+    const paidTotal = inv.deposit + (inv.balancePaidFlag ? (inv.total - inv.deposit) : 0);
+    const isFullyPaid = paidTotal >= inv.total;
+    const today = new Date().toISOString().split('T')[0];
+    const isOverdue = !isFullyPaid && inv.dueDate < today;
+    if (isFullyPaid) return 'paid';
+    if (isOverdue) return 'overdue';
+    if (inv.deposit > 0) return 'partial';
+    return 'pending';
+  }
+
+  function renderDashboard(){
+    const wrap = document.getElementById('dashTableWrap');
+    if (invoices.length === 0){
+      wrap.innerHTML = '<div class="empty">No invoices yet. Create one in the "New invoice" tab.</div>';
+      document.getElementById('sumCount').textContent = '0';
+      document.getElementById('sumOutstanding').innerHTML = formatNaira(0);
+      document.getElementById('sumCollected').innerHTML = formatNaira(0);
+      return;
+    }
+
+    let totalOutstanding = 0, totalCollected = 0;
+
+    const sorted = [...invoices].sort((a,b) => (a.dueDate < b.dueDate ? -1 : 1));
+
+    const rows = sorted.map(inv => {
+      const status = getStatus(inv);
+      const paidSoFar = inv.deposit + (inv.balancePaidFlag ? (inv.total - inv.deposit) : 0);
+      const balance = inv.total - paidSoFar;
+      totalCollected += paidSoFar;
+      totalOutstanding += balance;
+
+      const badgeClass = status;
+      const badgeText = status === 'partial' ? 'Deposit paid' : status;
+      const rowClass = status === 'overdue' ? 'overdue' : (status === 'paid' ? 'paid' : '');
+
+      let actions = '';
+      if (inv.deposit < inv.total * 0.999 && !inv.balancePaidFlag && inv.deposit === 0){
+        actions += `<button class="mini-btn good" data-action="deposit" data-id="${inv.id}">Mark deposit paid</button>`;
+      }
+      if (!inv.balancePaidFlag){
+        actions += `<button class="mini-btn good" data-action="balance" data-id="${inv.id}">Mark fully paid</button>`;
+      }
+      actions += `<button class="mini-btn" data-action="pdf" data-id="${inv.id}">Download</button>`;
+      actions += `<button class="mini-btn danger" data-action="delete" data-id="${inv.id}">Delete</button>`;
+
+      return `
+        <tr class="${rowClass}">
+          <td>${escapeHtml(inv.customer)}</td>
+          <td>${escapeHtml(inv.job)}</td>
+          <td>${formatNairaText(inv.total)}</td>
+          <td>${formatNairaText(balance)}</td>
+          <td>${inv.dueDate}</td>
+          <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+          <td><div class="row-actions">${actions}</div></td>
+        </tr>
+      `;
+    }).join('');
+
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr><th>Customer</th><th>Job</th><th>Total</th><th>Balance</th><th>Due</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+
+    document.getElementById('sumCount').textContent = invoices.length;
+    document.getElementById('sumOutstanding').innerHTML = formatNaira(totalOutstanding);
+    document.getElementById('sumCollected').innerHTML = formatNaira(totalCollected);
+
+    wrap.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = parseFloat(btn.dataset.id);
+        const inv = invoices.find(i => i.id === id);
+        if (!inv) return;
+        const action = btn.dataset.action;
+        if (action === 'deposit'){
+          const amt = prompt('Deposit amount received (₦):', Math.round(inv.total * 0.5));
+          if (amt === null) return;
+          inv.deposit = parseFloat(amt) || 0;
+        } else if (action === 'balance'){
+          inv.balancePaidFlag = true;
+        } else if (action === 'delete'){
+          if (!confirm('Delete this invoice?')) return;
+          invoices = invoices.filter(i => i.id !== id);
+        } else if (action === 'pdf'){
+          buildPrintSheet(inv);
+          window.print();
+          return;
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(invoices));
+        renderDashboard();
+      });
+    });
+  }
+
+  function buildPrintSheet(inv){
+    const biz = JSON.parse(localStorage.getItem(BIZ_KEY) || '{}');
+    const status = getStatus(inv);
+    const isPaid = status === 'paid';
+    const paidSoFar = inv.deposit + (inv.balancePaidFlag ? (inv.total - inv.deposit) : 0);
+    const balance = inv.total - paidSoFar;
+
+    const tag = document.getElementById('pTag');
+    tag.textContent = isPaid ? 'RECEIPT — PAID IN FULL' : 'PAYMENT REMINDER';
+    tag.className = 'p-tag ' + (isPaid ? 'receipt' : 'reminder');
+
+    document.getElementById('pBizName').textContent = biz.name || 'Your Business Name';
+    document.getElementById('pBizContact').textContent = [biz.phone, biz.location].filter(Boolean).join(' \u00b7 ') || '';
+    document.getElementById('pMeta').textContent = `${inv.customer} \u00b7 ${inv.job} \u00b7 Due: ${inv.dueDate}`;
+
+    const lines = [
+      { desc: 'Job total', amt: inv.total },
+      { desc: 'Paid so far', amt: -paidSoFar }
+    ];
+    document.getElementById('pLines').innerHTML = lines.map(l =>
+      `<tr><td>${escapeHtml(l.desc)}</td><td style="text-align:right;">${l.amt < 0 ? '-' : ''}${formatNairaText(Math.abs(l.amt))}</td></tr>`
+    ).join('');
+
+    document.getElementById('pTotal').textContent = isPaid
+      ? 'Paid in full: ' + formatNairaText(inv.total)
+      : 'Balance remaining: ' + formatNairaText(balance);
+  }
+
+  // ---------- Business settings ----------
+  function loadBiz(){
+    const biz = JSON.parse(localStorage.getItem(BIZ_KEY) || '{}');
+    document.getElementById('bizName').value = biz.name || '';
+    document.getElementById('bizPhone').value = biz.phone || '';
+    document.getElementById('bizLocation').value = biz.location || '';
+  }
+  document.getElementById('saveBizBtn').addEventListener('click', () => {
+    const biz = {
+      name: document.getElementById('bizName').value,
+      phone: document.getElementById('bizPhone').value,
+      location: document.getElementById('bizLocation').value
+    };
+    localStorage.setItem(BIZ_KEY, JSON.stringify(biz));
+    const b = document.getElementById('saveBizBtn');
+    b.textContent = 'Saved ✓';
+    setTimeout(() => { b.textContent = 'Save business details'; }, 1500);
+  });
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  loadBiz();
+  renderDashboard();
+})();
+</script>
+
+</body>
+</html>
