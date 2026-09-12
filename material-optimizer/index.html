@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Material Optimizer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --blueprint-navy: #0b2036;
+  --blueprint-deep: #071522;
+  --blueprint-line: #2f5f7a;
+  --blueprint-cyan: #6fd0e0;
+  --blueprint-cyan-dim: #3f8ea3;
+  --paper: #eef3f2;
+  --paper-dim: #b9c9cd;
+  --amber: #e0a53d;
+  --danger: #d97757;
+  --good: #6fd0a0;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--blueprint-deep);
+  background-image:
+    linear-gradient(var(--blueprint-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--blueprint-line) 1px, transparent 1px);
+  background-size:28px 28px;
+  background-position:-1px -1px;
+  color:var(--paper);
+  font-family:'IBM Plex Sans', sans-serif;
+  min-height:100vh;
+  padding:32px 16px;
+}
+.sheet{
+  max-width:1200px;
+  margin:0 auto;
+  border:1.5px solid var(--blueprint-cyan-dim);
+  background:rgba(11,32,54,0.55);
+  backdrop-filter:blur(2px);
+  position:relative;
+}
+.sheet::before{content:"";position:absolute;inset:8px;border:1px solid var(--blueprint-line);pointer-events:none;}
+
+.titleblock{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:22px 28px 16px;border-bottom:1.5px solid var(--blueprint-cyan-dim);
+  flex-wrap:wrap;gap:12px;
+}
+.titleblock .left h1{
+  font-family:'Oswald', sans-serif;font-weight:600;font-size:26px;
+  letter-spacing:0.02em;margin:0 0 4px;color:var(--paper);text-transform:uppercase;
+}
+.titleblock .left p{margin:0;font-family:'IBM Plex Mono', monospace;font-size:12px;color:var(--blueprint-cyan);letter-spacing:0.05em;}
+.titleblock .right{text-align:right;font-family:'IBM Plex Mono', monospace;font-size:11px;color:var(--paper-dim);line-height:1.6;}
+.titleblock .right .rev{color:var(--amber);}
+
+.tabbar{display:flex;border-bottom:1.5px solid var(--blueprint-cyan-dim);}
+.tabbar button{
+  flex:1;background:transparent;border:none;border-right:1px solid var(--blueprint-line);
+  color:var(--paper-dim);font-family:'IBM Plex Mono', monospace;font-size:12px;
+  letter-spacing:0.06em;text-transform:uppercase;padding:12px 8px;cursor:pointer;
+}
+.tabbar button:last-child{border-right:none;}
+.tabbar button.active{background:rgba(111,208,224,0.08);color:var(--blueprint-cyan);font-weight:600;}
+
+.panel-view{display:none;padding:26px 28px;}
+.panel-view.active{display:block;}
+
+.section-label{
+  font-family:'IBM Plex Mono', monospace;font-size:10px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--amber);margin:0 0 14px;padding-bottom:6px;
+  border-bottom:1px dashed var(--blueprint-line);display:flex;justify-content:space-between;align-items:center;
+}
+.section-label:not(:first-child){margin-top:24px;}
+
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+@media (max-width:760px){.summary-row{grid-template-columns:1fr 1fr;}}
+.summary-card{border:1px dashed var(--blueprint-cyan-dim);padding:16px;text-align:center;}
+.summary-card .label{font-family:'IBM Plex Mono', monospace;font-size:10.5px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:0.06em;}
+.summary-card .num{font-family:'Oswald', sans-serif;font-size:26px;font-weight:600;color:var(--amber);margin-top:6px;}
+.summary-card.warn .num{color:var(--danger);}
+.summary-card.ok .num{color:var(--good);}
+
+.field{margin-bottom:16px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field-row.three{grid-template-columns:1fr 1fr 1fr;}
+.field label{
+  display:block;font-family:'IBM Plex Mono', monospace;font-size:11px;
+  letter-spacing:0.06em;text-transform:uppercase;color:var(--blueprint-cyan);margin-bottom:8px;
+}
+select, input[type="number"], input[type="text"], input[type="date"]{
+  width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--blueprint-line);
+  color:var(--paper);padding:9px 10px;font-family:'IBM Plex Mono', monospace;font-size:13.5px;border-radius:2px;
+}
+select:focus, input:focus{outline:2px solid var(--blueprint-cyan);outline-offset:1px;border-color:var(--blueprint-cyan);}
+
+.toggle-row{display:flex;gap:8px;flex-wrap:wrap;}
+.toggle-row button{
+  flex:1;min-width:100px;background:rgba(255,255,255,0.03);border:1px solid var(--blueprint-line);
+  color:var(--paper-dim);padding:9px 6px;font-family:'IBM Plex Mono', monospace;font-size:11.5px;
+  cursor:pointer;border-radius:2px;transition:all 0.15s ease;
+}
+.toggle-row button:hover{border-color:var(--blueprint-cyan-dim);color:var(--paper);}
+.toggle-row button.active{background:var(--blueprint-cyan-dim);border-color:var(--blueprint-cyan);color:var(--blueprint-deep);font-weight:600;}
+
+.check-row{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono', monospace;font-size:11.5px;color:var(--paper-dim);margin-bottom:16px;}
+.check-row input{accent-color:var(--blueprint-cyan);}
+
+.mini-btn{
+  background:transparent;border:1px solid var(--blueprint-cyan-dim);color:var(--blueprint-cyan);
+  font-family:'IBM Plex Mono', monospace;font-size:10.5px;letter-spacing:0.04em;
+  padding:6px 12px;cursor:pointer;border-radius:2px;
+}
+.mini-btn:hover{background:rgba(111,208,224,0.1);}
+.mini-btn.danger{border-color:var(--danger);color:var(--danger);}
+.mini-btn.danger:hover{background:rgba(217,119,87,0.1);}
+.mini-btn.good{border-color:var(--good);color:var(--good);}
+.mini-btn.good:hover{background:rgba(111,208,160,0.1);}
+
+.btn-primary{
+  background:var(--amber);border:1px solid var(--amber);color:var(--blueprint-deep);
+  font-weight:700;font-family:'IBM Plex Mono', monospace;font-size:12px;letter-spacing:0.04em;
+  padding:11px 18px;border-radius:2px;cursor:pointer;text-transform:uppercase;
+}
+.btn-primary:hover{background:#eeb654;}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+
+.import-box{
+  border:1px dashed var(--blueprint-cyan-dim);padding:14px 16px;margin-bottom:20px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+}
+.import-box .itxt{font-size:12.5px;color:var(--paper-dim);}
+
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:560px;}
+th, td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--blueprint-line);white-space:nowrap;}
+th{font-family:'IBM Plex Mono', monospace;font-size:10.5px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:0.05em;}
+
+.badge{
+  display:inline-block;font-family:'IBM Plex Mono', monospace;font-size:10.5px;
+  padding:3px 9px;border-radius:3px;letter-spacing:0.03em;text-transform:uppercase;
+}
+.badge.sheet{background:rgba(111,208,224,0.15);color:var(--blueprint-cyan);}
+.badge.bar{background:rgba(224,165,61,0.15);color:var(--amber);}
+.badge.overdue{background:rgba(217,119,87,0.18);color:var(--danger);}
+
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+.empty{color:var(--paper-dim);font-size:13px;text-align:center;padding:30px 10px;border:1px dashed var(--blueprint-line);}
+
+.hint{font-size:11px;color:var(--paper-dim);margin-top:6px;line-height:1.4;}
+
+/* ---- results / layout view ---- */
+.stock-group{margin-bottom:30px;}
+.stock-group-title{
+  font-family:'Oswald', sans-serif;font-size:16px;font-weight:600;color:var(--paper);
+  display:flex;align-items:center;gap:10px;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.02em;
+}
+.stock-group-sub{font-family:'IBM Plex Mono', monospace;font-size:11.5px;color:var(--paper-dim);margin-bottom:14px;}
+
+.sheet-grid{display:flex;flex-wrap:wrap;gap:18px;}
+.sheet-card{border:1px solid var(--blueprint-line);padding:10px;background:rgba(255,255,255,0.02);}
+.sheet-card .sheet-label{
+  font-family:'IBM Plex Mono', monospace;font-size:10.5px;color:var(--paper-dim);
+  display:flex;justify-content:space-between;gap:14px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;
+}
+.sheet-card .eff{color:var(--good);}
+.sheet-card .eff.warn{color:var(--amber);}
+.sheet-card svg{display:block;background:var(--blueprint-deep);}
+
+.bar-row{margin-bottom:10px;}
+.bar-row .bar-label{
+  font-family:'IBM Plex Mono', monospace;font-size:10.5px;color:var(--paper-dim);
+  display:flex;justify-content:space-between;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em;
+}
+.bar-strip{display:flex;border:1px solid var(--blueprint-line);background:var(--blueprint-deep);}
+
+.reject-note{margin-top:10px;color:var(--danger);font-family:'IBM Plex Mono', monospace;font-size:11.5px;}
+
+/* Print sheet (cut sheet for the workshop floor) */
+#printSheet{display:none;}
+@media print{
+  body *{visibility:hidden;}
+  #printSheet, #printSheet *{visibility:visible;}
+  #printSheet{
+    display:block;position:absolute;top:0;left:0;width:100%;
+    background:#fff;color:#111;padding:30px;font-family:'IBM Plex Sans', sans-serif;
+  }
+  #printSheet h2{font-family:'Oswald',sans-serif;font-size:22px;margin:0 0 2px;}
+  #printSheet .biz{color:#555;font-size:13px;margin-bottom:16px;}
+  #printSheet .p-meta{font-size:12px;color:#777;margin-bottom:14px;}
+  #printSheet h3{font-family:'Oswald',sans-serif;font-size:15px;margin:18px 0 6px;text-transform:uppercase;}
+  #printSheet table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+  #printSheet th, #printSheet td{text-align:left;padding:6px;border-bottom:1px solid #ddd;font-size:12px;}
+  #printSheet .p-total{font-size:14px;font-weight:700;margin-top:4px;}
+}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <div class="titleblock">
+    <div class="left">
+      <h1>Material Optimizer</h1>
+      <p>Turn a parts list into the cutting layout that wastes the least steel</p>
+    </div>
+    <div class="right">
+      DWG NO. FAB&#8209;004<br>
+      SHEET 1/1<br>
+      <span class="rev">REV A</span>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <button data-tab="setup" class="active">Setup</button>
+    <button data-tab="layout">Cut layout</button>
+  </div>
+
+  <!-- SETUP -->
+  <div class="panel-view active" id="view-setup">
+
+    <div class="import-box">
+      <span class="itxt">Save this stock + parts list, or reload a job you set up before.</span>
+      <div class="row-actions">
+        <button class="mini-btn" id="saveJobBtn">Save job</button>
+        <button class="mini-btn" id="loadJobBtn">Load job</button>
+      </div>
+    </div>
+
+    <p class="section-label">Cutting settings</p>
+    <div class="field-row three">
+      <div class="field">
+        <label>Kerf / blade width (mm)</label>
+        <input type="number" id="kerfInput" value="3" min="0" step="0.5">
+      </div>
+      <div class="field">
+        <label>Job reference (optional)</label>
+        <input type="text" id="jobRef" placeholder="e.g. Compound gate">
+      </div>
+      <div></div>
+    </div>
+
+    <p class="section-label">Stock available<span></span></p>
+    <div class="field-row">
+      <div class="field">
+        <label>Type</label>
+        <select id="stockType">
+          <option value="sheet">Sheet (2D)</option>
+          <option value="bar">Bar / pipe (1D)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="stockName" placeholder="e.g. 4x8ft mild steel">
+      </div>
+    </div>
+    <div class="field-row three" id="stockDimsSheet">
+      <div class="field">
+        <label>Width (mm)</label>
+        <input type="number" id="stockW" min="1">
+      </div>
+      <div class="field">
+        <label>Height (mm)</label>
+        <input type="number" id="stockH" min="1">
+      </div>
+      <div class="field">
+        <label>Qty available</label>
+        <input type="number" id="stockQty" min="1" placeholder="unlimited">
+      </div>
+    </div>
+    <div class="field-row" id="stockPriceSheetRow">
+      <div class="field">
+        <label>Price per sheet (&#8358;, optional)</label>
+        <input type="number" id="stockPrice" min="0" step="100" placeholder="e.g. 45000">
+      </div>
+      <div></div>
+    </div>
+    <div class="field-row three" id="stockDimsBar" style="display:none;">
+      <div class="field">
+        <label>Length (mm)</label>
+        <input type="number" id="stockLen" min="1">
+      </div>
+      <div class="field">
+        <label>Qty available</label>
+        <input type="number" id="stockQtyBar" min="1" placeholder="unlimited">
+      </div>
+      <div></div>
+    </div>
+    <div class="field-row" id="stockPriceBarRow" style="display:none;">
+      <div class="field">
+        <label>Price per bar (&#8358;, optional)</label>
+        <input type="number" id="stockPriceBar" min="0" step="100" placeholder="e.g. 8500">
+      </div>
+      <div></div>
+    </div>
+    <button class="mini-btn good" id="addStockBtn" style="margin-bottom:16px;">+ Add stock</button>
+
+    <div class="table-scroll" id="stockTableWrap">
+      <div class="empty">No stock added yet.</div>
+    </div>
+
+    <p class="section-label">Parts needed</p>
+    <div class="field-row">
+      <div class="field">
+        <label>Assign to stock</label>
+        <select id="partStock"></select>
+      </div>
+      <div class="field">
+        <label>Part name</label>
+        <input type="text" id="partName" placeholder="e.g. bracket-A">
+      </div>
+    </div>
+    <div class="field-row three" id="partDimsSheet">
+      <div class="field">
+        <label>Width (mm)</label>
+        <input type="number" id="partW" min="1">
+      </div>
+      <div class="field">
+        <label>Height (mm)</label>
+        <input type="number" id="partH" min="1">
+      </div>
+      <div class="field">
+        <label>Qty</label>
+        <input type="number" id="partQty" min="1" value="1">
+      </div>
+    </div>
+    <div class="field-row three" id="partDimsBar" style="display:none;">
+      <div class="field">
+        <label>Length (mm)</label>
+        <input type="number" id="partLen" min="1">
+      </div>
+      <div class="field">
+        <label>Qty</label>
+        <input type="number" id="partQtyBar" min="1" value="1">
+      </div>
+      <div></div>
+    </div>
+    <div class="check-row" id="rotateRow">
+      <input type="checkbox" id="partRotate" checked>
+      <label style="margin:0;">Allow 90&deg; rotation to improve fit</label>
+    </div>
+    <button class="mini-btn good" id="addPartBtn" style="margin-bottom:16px;">+ Add part</button>
+
+    <div class="table-scroll" id="partTableWrap">
+      <div class="empty">No parts added yet.</div>
+    </div>
+
+    <button class="btn-primary" id="optimizeBtn" style="margin-top:20px;">Optimize cut layout</button>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="panel-view" id="view-layout">
+    <div id="layoutResults">
+      <div class="empty">No layout yet. Add stock and parts in the Setup tab, then run Optimize.</div>
+    </div>
+  </div>
+</div>
+
+<div id="printSheet">
+  <h2 id="pBizName">Your Business Name</h2>
+  <div class="biz" id="pBizContact">Phone &middot; Location</div>
+  <div class="p-meta" id="pMeta">Cut sheet &middot; &mdash;</div>
+  <div id="pBody"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const STOCK_KEY = 'fabcalc_optimizer_stock';
+  const PARTS_KEY = 'fabcalc_optimizer_parts';
+  const JOBS_KEY = 'fabcalc_optimizer_jobs';
+  const BIZ_KEY = 'fabcalc_biz';
+
+  const state = {
+    stocks: JSON.parse(localStorage.getItem(STOCK_KEY) || '[]'),
+    parts: JSON.parse(localStorage.getItem(PARTS_KEY) || '[]'),
+  };
+  let idCounter = Date.now();
+
+  function persist(){
+    localStorage.setItem(STOCK_KEY, JSON.stringify(state.stocks));
+    localStorage.setItem(PARTS_KEY, JSON.stringify(state.parts));
+  }
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tabbar button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabbar button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel-view').forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('view-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  function goToTab(name){
+    document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    document.querySelectorAll('.panel-view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  // ---------- Type toggles ----------
+  const stockType = document.getElementById('stockType');
+  const stockDimsSheet = document.getElementById('stockDimsSheet');
+  const stockDimsBar = document.getElementById('stockDimsBar');
+  stockType.addEventListener('change', () => {
+    const isSheet = stockType.value === 'sheet';
+    stockDimsSheet.style.display = isSheet ? 'grid' : 'none';
+    stockDimsBar.style.display = isSheet ? 'none' : 'grid';
+    document.getElementById('stockPriceSheetRow').style.display = isSheet ? 'grid' : 'none';
+    document.getElementById('stockPriceBarRow').style.display = isSheet ? 'none' : 'grid';
+  });
+
+  const partDimsSheet = document.getElementById('partDimsSheet');
+  const partDimsBar = document.getElementById('partDimsBar');
+  const rotateRow = document.getElementById('rotateRow');
+  const partStockSel = document.getElementById('partStock');
+  partStockSel.addEventListener('change', syncPartFieldsToStockType);
+
+  function syncPartFieldsToStockType(){
+    const stock = state.stocks.find(s => s.id === partStockSel.value);
+    const isSheet = !stock || stock.type === 'sheet';
+    partDimsSheet.style.display = isSheet ? 'grid' : 'none';
+    partDimsBar.style.display = isSheet ? 'none' : 'grid';
+    rotateRow.style.display = isSheet ? 'flex' : 'none';
+  }
+
+  // ---------- Stock CRUD ----------
+  function renderStockOptions(){
+    partStockSel.innerHTML = '';
+    if (state.stocks.length === 0){
+      const opt = document.createElement('option');
+      opt.value = ''; opt.textContent = 'Add stock first';
+      partStockSel.appendChild(opt);
+    } else {
+      state.stocks.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        const dims = s.type === 'sheet' ? `${s.w}\u00d7${s.h}mm` : `${s.len}mm`;
+        opt.textContent = `${s.name} (${dims})`;
+        partStockSel.appendChild(opt);
+      });
+    }
+    syncPartFieldsToStockType();
+  }
+
+  function renderStockTable(){
+    const wrap = document.getElementById('stockTableWrap');
+    if (state.stocks.length === 0){
+      wrap.innerHTML = '<div class="empty">No stock added yet.</div>';
+      return;
+    }
+    const rows = state.stocks.map(s => {
+      const dims = s.type === 'sheet' ? `${s.w} &times; ${s.h} mm` : `${s.len} mm`;
+      const qty = s.qty ? s.qty : 'Unlimited';
+      const price = s.price ? `&#8358;${Math.round(s.price).toLocaleString('en-NG')}` : '&mdash;';
+      return `<tr>
+        <td><span class="badge ${s.type}">${s.type === 'sheet' ? '2D sheet' : '1D bar'}</span></td>
+        <td>${escapeHtml(s.name)}</td>
+        <td>${dims}</td>
+        <td>${qty}</td>
+        <td>${price}</td>
+        <td><button class="mini-btn danger" data-del-stock="${s.id}">Remove</button></td>
+      </tr>`;
+    }).join('');
+    wrap.innerHTML = `<table><thead><tr><th>Type</th><th>Name</th><th>Dimensions</th><th>Qty avail.</th><th>Price</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+    wrap.querySelectorAll('[data-del-stock]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.delStock;
+        state.stocks = state.stocks.filter(s => s.id !== id);
+        state.parts = state.parts.filter(p => p.stockId !== id);
+        persist();
+        renderStockTable(); renderStockOptions(); renderPartTable();
+      });
+    });
+  }
+
+  document.getElementById('addStockBtn').addEventListener('click', () => {
+    const type = stockType.value;
+    const name = document.getElementById('stockName').value.trim() || (type === 'sheet' ? 'Sheet' : 'Bar');
+    let stock;
+    if (type === 'sheet'){
+      const w = parseFloat(document.getElementById('stockW').value);
+      const h = parseFloat(document.getElementById('stockH').value);
+      if (!w || !h){ alert('Enter width and height for the sheet.'); return; }
+      const qtyRaw = document.getElementById('stockQty').value;
+      const priceRaw = document.getElementById('stockPrice').value;
+      stock = { id: 's' + (idCounter++), type, name, w, h, qty: qtyRaw ? parseInt(qtyRaw) : null, price: priceRaw ? parseFloat(priceRaw) : null };
+      document.getElementById('stockW').value = '';
+      document.getElementById('stockH').value = '';
+      document.getElementById('stockQty').value = '';
+      document.getElementById('stockPrice').value = '';
+    } else {
+      const len = parseFloat(document.getElementById('stockLen').value);
+      if (!len){ alert('Enter a length for the bar.'); return; }
+      const qtyRaw = document.getElementById('stockQtyBar').value;
+      const priceRaw = document.getElementById('stockPriceBar').value;
+      stock = { id: 's' + (idCounter++), type, name, len, qty: qtyRaw ? parseInt(qtyRaw) : null, price: priceRaw ? parseFloat(priceRaw) : null };
+      document.getElementById('stockLen').value = '';
+      document.getElementById('stockQtyBar').value = '';
+      document.getElementById('stockPriceBar').value = '';
+    }
+    document.getElementById('stockName').value = '';
+    state.stocks.push(stock);
+    persist();
+    renderStockTable(); renderStockOptions();
+  });
+
+  // ---------- Parts CRUD ----------
+  function renderPartTable(){
+    const wrap = document.getElementById('partTableWrap');
+    if (state.parts.length === 0){
+      wrap.innerHTML = '<div class="empty">No parts added yet.</div>';
+      return;
+    }
+    const rows = state.parts.map(p => {
+      const stock = state.stocks.find(s => s.id === p.stockId);
+      const dims = p.stockType === 'sheet' ? `${p.w} &times; ${p.h} mm` : `${p.len} mm`;
+      return `<tr>
+        <td>${escapeHtml(p.name)}</td>
+        <td>${dims}</td>
+        <td>${p.qty}</td>
+        <td>${stock ? escapeHtml(stock.name) : '<span class="badge overdue">deleted</span>'}</td>
+        <td><button class="mini-btn danger" data-del-part="${p.id}">Remove</button></td>
+      </tr>`;
+    }).join('');
+    wrap.innerHTML = `<table><thead><tr><th>Part</th><th>Dimensions</th><th>Qty</th><th>Stock</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+    wrap.querySelectorAll('[data-del-part]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.parts = state.parts.filter(p => p.id !== btn.dataset.delPart);
+        persist();
+        renderPartTable();
+      });
+    });
+  }
+
+  document.getElementById('addPartBtn').addEventListener('click', () => {
+    if (state.stocks.length === 0){ alert('Add at least one stock item first.'); return; }
+    const stockId = partStockSel.value;
+    const stock = state.stocks.find(s => s.id === stockId);
+    const name = document.getElementById('partName').value.trim() || 'Part';
+    let part;
+    if (stock.type === 'sheet'){
+      const w = parseFloat(document.getElementById('partW').value);
+      const h = parseFloat(document.getElementById('partH').value);
+      const qty = parseInt(document.getElementById('partQty').value) || 1;
+      if (!w || !h){ alert('Enter width and height for the part.'); return; }
+      const rotate = document.getElementById('partRotate').checked;
+      part = { id: 'p' + (idCounter++), stockId, stockType: 'sheet', name, w, h, qty, rotate };
+      document.getElementById('partW').value = '';
+      document.getElementById('partH').value = '';
+      document.getElementById('partQty').value = '1';
+    } else {
+      const len = parseFloat(document.getElementById('partLen').value);
+      const qty = parseInt(document.getElementById('partQtyBar').value) || 1;
+      if (!len){ alert('Enter a length for the part.'); return; }
+      part = { id: 'p' + (idCounter++), stockId, stockType: 'bar', name, len, qty };
+      document.getElementById('partLen').value = '';
+      document.getElementById('partQtyBar').value = '1';
+    }
+    document.getElementById('partName').value = '';
+    state.parts.push(part);
+    persist();
+    renderPartTable();
+  });
+
+  // ---------- Save / load full job ----------
+  document.getElementById('saveJobBtn').addEventListener('click', () => {
+    const name = prompt('Name this job:', document.getElementById('jobRef').value || ('job-' + new Date().toISOString().slice(0,10)));
+    if (!name) return;
+    const jobs = JSON.parse(localStorage.getItem(JOBS_KEY) || '{}');
+    jobs[name] = {
+      stocks: state.stocks, parts: state.parts,
+      kerf: document.getElementById('kerfInput').value,
+      jobRef: document.getElementById('jobRef').value
+    };
+    localStorage.setItem(JOBS_KEY, JSON.stringify(jobs));
+    alert(`Saved as "${name}".`);
+  });
+
+  document.getElementById('loadJobBtn').addEventListener('click', () => {
+    const jobs = JSON.parse(localStorage.getItem(JOBS_KEY) || '{}');
+    const names = Object.keys(jobs);
+    if (names.length === 0){ alert('No saved jobs yet.'); return; }
+    const choice = prompt(`Load which job?\n\n${names.join('\n')}`, names[names.length - 1]);
+    if (!choice || !jobs[choice]) return;
+    const job = jobs[choice];
+    state.stocks = job.stocks || [];
+    state.parts = job.parts || [];
+    document.getElementById('kerfInput').value = job.kerf || 3;
+    document.getElementById('jobRef').value = job.jobRef || '';
+    persist();
+    renderStockTable(); renderStockOptions(); renderPartTable();
+  });
+
+  // ================= 2D bin packing (guillotine, best-area-fit, rotation) =================
+  function packSheets(stock, parts, kerf){
+    let pieces = [];
+    parts.forEach(p => { for (let i = 0; i < p.qty; i++) pieces.push({ name: p.name, w: p.w, h: p.h, rotate: p.rotate }); });
+    pieces.sort((a, b) => (b.w * b.h) - (a.w * a.h));
+
+    const sheets = [];
+    function newSheet(){ return { freeRects: [{ x: 0, y: 0, w: stock.w, h: stock.h }], placed: [] }; }
+
+    function tryPlaceOnSheet(sheet, piece){
+      let bestRectIdx = -1, bestOrientW = piece.w, bestOrientH = piece.h, bestScore = Infinity, bestRotated = false;
+      sheet.freeRects.forEach((r, idx) => {
+        if (piece.w <= r.w && piece.h <= r.h){
+          const score = (r.w * r.h) - (piece.w * piece.h);
+          if (score < bestScore){ bestScore = score; bestRectIdx = idx; bestOrientW = piece.w; bestOrientH = piece.h; bestRotated = false; }
+        }
+        if (piece.rotate && piece.h <= r.w && piece.w <= r.h){
+          const score = (r.w * r.h) - (piece.w * piece.h);
+          if (score < bestScore){ bestScore = score; bestRectIdx = idx; bestOrientW = piece.h; bestOrientH = piece.w; bestRotated = true; }
+        }
+      });
+      if (bestRectIdx === -1) return false;
+
+      const r = sheet.freeRects[bestRectIdx];
+      const placedW = bestOrientW + kerf;
+      const placedH = bestOrientH + kerf;
+      sheet.placed.push({ x: r.x, y: r.y, w: bestOrientW, h: bestOrientH, name: piece.name, rotated: bestRotated });
+
+      sheet.freeRects.splice(bestRectIdx, 1);
+      const remW = r.w - placedW;
+      const remH = r.h - placedH;
+      if (remW > 0 || remH > 0){
+        if (remW <= remH){
+          if (remH > 0) sheet.freeRects.push({ x: r.x, y: r.y + placedH, w: r.w, h: remH });
+          if (remW > 0) sheet.freeRects.push({ x: r.x + placedW, y: r.y, w: remW, h: placedH });
+        } else {
+          if (remW > 0) sheet.freeRects.push({ x: r.x + placedW, y: r.y, w: remW, h: r.h });
+          if (remH > 0) sheet.freeRects.push({ x: r.x, y: r.y + placedH, w: placedW, h: remH });
+        }
+      }
+      return true;
+    }
+
+    pieces.forEach(piece => {
+      const fitsAtAll = (piece.w <= stock.w && piece.h <= stock.h) || (piece.rotate && piece.h <= stock.w && piece.w <= stock.h);
+      if (!fitsAtAll){ piece.doesNotFit = true; return; }
+      let placed = false;
+      for (const sheet of sheets){ if (tryPlaceOnSheet(sheet, piece)){ placed = true; break; } }
+      if (!placed){
+        const sheet = newSheet();
+        tryPlaceOnSheet(sheet, piece);
+        sheets.push(sheet);
+      }
+    });
+
+    return { sheets, rejects: pieces.filter(p => p.doesNotFit), stock };
+  }
+
+  // ================= 1D bar cutting (first-fit decreasing) =================
+  function packBars(stock, parts, kerf){
+    let pieces = [];
+    parts.forEach(p => { for (let i = 0; i < p.qty; i++) pieces.push({ name: p.name, len: p.len }); });
+    pieces.sort((a, b) => b.len - a.len);
+
+    const bars = [];
+    const rejects = [];
+
+    pieces.forEach(piece => {
+      if (piece.len > stock.len){ rejects.push(piece); return; }
+      let placed = false;
+      for (const bar of bars){
+        const needed = piece.len + (bar.segments.length > 0 ? kerf : 0);
+        if (needed <= bar.remaining){
+          bar.segments.push({ name: piece.name, len: piece.len });
+          bar.remaining -= needed;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed){ bars.push({ remaining: stock.len - piece.len, segments: [{ name: piece.name, len: piece.len }] }); }
+    });
+
+    return { bars, rejects, stock };
+  }
+
+  // ---------- Colors ----------
+  function colorFor(name){
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 60%, 62%)`;
+  }
+
+  let lastResults = []; // for print sheet
+
+  function renderSheetResult(container, result){
+    const { sheets, rejects, stock } = result;
+    const wrap = document.createElement('div');
+    wrap.className = 'stock-group';
+
+    const totalArea = sheets.length * stock.w * stock.h;
+    const usedArea = sheets.reduce((sum, sh) => sum + sh.placed.reduce((s, p) => s + p.w * p.h, 0), 0);
+    const wastePct = totalArea > 0 ? (100 - (usedArea / totalArea * 100)) : 0;
+
+    const wasteValue = stock.price ? (stock.price * sheets.length * wastePct / 100) : null;
+    wrap.innerHTML = `<div class="stock-group-title">${escapeHtml(stock.name)} <span class="badge sheet">2D sheet</span></div>
+      <div class="stock-group-sub">${stock.w} &times; ${stock.h} mm &middot; ${sheets.length} sheet${sheets.length === 1 ? '' : 's'} needed
+        &middot; ${wastePct.toFixed(1)}% waste${wasteValue !== null ? ` <span style="color:var(--danger)">(&#8776;&#8358;${Math.round(wasteValue).toLocaleString('en-NG')} worth of material)</span>` : ''}
+        ${stock.qty ? (sheets.length > stock.qty ? `<span style="color:var(--danger)"> &middot; exceeds available qty (${stock.qty})</span>` : ` &middot; ${stock.qty - sheets.length} spare of ${stock.qty}`) : ''}
+      </div>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'sheet-grid';
+    const maxPx = 300;
+    const scale = Math.min(maxPx / stock.w, maxPx / stock.h);
+
+    sheets.forEach((sheet, i) => {
+      const svgW = stock.w * scale, svgH = stock.h * scale;
+      const used = sheet.placed.reduce((s, p) => s + p.w * p.h, 0);
+      const eff = (used / (stock.w * stock.h) * 100);
+      const card = document.createElement('div');
+      card.className = 'sheet-card';
+      let rects = '';
+      sheet.placed.forEach(p => {
+        const c = colorFor(p.name);
+        rects += `<rect x="${p.x * scale}" y="${p.y * scale}" width="${p.w * scale}" height="${p.h * scale}" fill="${c}" fill-opacity="0.3" stroke="${c}" stroke-width="1.5"/>`;
+        if (p.w * scale > 34 && p.h * scale > 16){
+          rects += `<text x="${(p.x + p.w / 2) * scale}" y="${(p.y + p.h / 2) * scale}" fill="#eef3f2" font-size="10" font-family="monospace" text-anchor="middle" dominant-baseline="middle">${escapeHtml(p.name)}</text>`;
+        }
+      });
+      card.innerHTML = `<div class="sheet-label"><span>Sheet ${i + 1} of ${sheets.length}</span><span class="eff ${eff < 70 ? 'warn' : ''}">${eff.toFixed(0)}% used</span></div>
+        <svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">
+          <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="none" stroke="#2f5f7a" stroke-width="1.5"/>
+          ${rects}
+        </svg>`;
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+
+    if (rejects.length){
+      const r = document.createElement('div');
+      r.className = 'reject-note';
+      r.textContent = `\u26A0 ${rejects.length} part(s) too large for this stock and were skipped: ` + rejects.map(p => p.name).join(', ');
+      wrap.appendChild(r);
+    }
+
+    container.appendChild(wrap);
+    return { totalArea, usedArea, count: sheets.length, kind: 'sheet', name: stock.name, dims: `${stock.w}\u00d7${stock.h}mm`, rejects: rejects.length, rejectNames: rejects.map(p => p.name), totalCost: stock.price ? stock.price * sheets.length : 0, wasteValue: wasteValue || 0 };
+  }
+
+  function renderBarResult(container, result){
+    const { bars, rejects, stock } = result;
+    const wrap = document.createElement('div');
+    wrap.className = 'stock-group';
+
+    const totalLen = bars.length * stock.len;
+    const usedLen = bars.reduce((s, b) => s + b.segments.reduce((ss, seg) => ss + seg.len, 0), 0);
+    const wastePct = totalLen > 0 ? (100 - (usedLen / totalLen * 100)) : 0;
+
+    const wasteValue = stock.price ? (stock.price * bars.length * wastePct / 100) : null;
+    wrap.innerHTML = `<div class="stock-group-title">${escapeHtml(stock.name)} <span class="badge bar">1D bar</span></div>
+      <div class="stock-group-sub">${stock.len} mm &middot; ${bars.length} bar${bars.length === 1 ? '' : 's'} needed
+        &middot; ${wastePct.toFixed(1)}% waste${wasteValue !== null ? ` <span style="color:var(--danger)">(&#8776;&#8358;${Math.round(wasteValue).toLocaleString('en-NG')} worth of material)</span>` : ''}
+        ${stock.qty ? (bars.length > stock.qty ? `<span style="color:var(--danger)"> &middot; exceeds available qty (${stock.qty})</span>` : ` &middot; ${stock.qty - bars.length} spare of ${stock.qty}`) : ''}
+      </div>`;
+
+    bars.forEach((bar, i) => {
+      const used = bar.segments.reduce((s, seg) => s + seg.len, 0);
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      let segsHtml = '';
+      bar.segments.forEach(seg => {
+        const pct = (seg.len / stock.len * 100);
+        const c = colorFor(seg.name);
+        segsHtml += `<div style="width:${pct}%; background:${c}33; border-right:1.5px solid ${c}; height:26px; display:flex; align-items:center; justify-content:center; font-size:9px; font-family:'IBM Plex Mono',monospace; color:#eef3f2; overflow:hidden;">${escapeHtml(seg.name)}</div>`;
+      });
+      const remPct = (bar.remaining / stock.len * 100);
+      row.innerHTML = `<div class="bar-label"><span>Bar ${i + 1} of ${bars.length}</span><span>${used}/${stock.len}mm used</span></div>
+        <div class="bar-strip">${segsHtml}${bar.remaining > 0 ? `<div style="width:${remPct}%; height:26px; background:repeating-linear-gradient(45deg, #0f2a40, #0f2a40 4px, #071522 4px, #071522 8px);"></div>` : ''}</div>`;
+      wrap.appendChild(row);
+    });
+
+    if (rejects.length){
+      const r = document.createElement('div');
+      r.className = 'reject-note';
+      r.textContent = `\u26A0 ${rejects.length} part(s) longer than the stock bar and were skipped: ` + rejects.map(p => p.name).join(', ');
+      wrap.appendChild(r);
+    }
+
+    container.appendChild(wrap);
+    return { totalArea: totalLen, usedArea: usedLen, count: bars.length, kind: 'bar', name: stock.name, dims: `${stock.len}mm`, rejects: rejects.length, rejectNames: rejects.map(p => p.name), totalCost: stock.price ? stock.price * bars.length : 0, wasteValue: wasteValue || 0 };
+  }
+
+  document.getElementById('optimizeBtn').addEventListener('click', () => {
+    if (state.stocks.length === 0 || state.parts.length === 0){
+      alert('Add at least one stock item and one part.');
+      return;
+    }
+    const kerf = parseFloat(document.getElementById('kerfInput').value) || 0;
+    const results = document.getElementById('layoutResults');
+    results.innerHTML = '';
+    lastResults = [];
+
+    const summaryBar = document.createElement('div');
+    summaryBar.className = 'summary-row';
+    results.appendChild(summaryBar);
+
+    let totalStockUnits = 0, totalTotalArea = 0, totalUsedArea = 0, totalRejects = 0, totalCost = 0, totalWasteValue = 0;
+
+    state.stocks.forEach(stock => {
+      const partsForStock = state.parts.filter(p => p.stockId === stock.id);
+      if (partsForStock.length === 0) return;
+
+      if (stock.type === 'sheet'){
+        const result = packSheets(stock, partsForStock, kerf);
+        const summary = renderSheetResult(results, result);
+        totalStockUnits += summary.count; totalTotalArea += summary.totalArea; totalUsedArea += summary.usedArea; totalRejects += summary.rejects;
+        totalCost += summary.totalCost; totalWasteValue += summary.wasteValue;
+        lastResults.push(summary);
+      } else {
+        const result = packBars(stock, partsForStock, kerf);
+        const summary = renderBarResult(results, result);
+        totalStockUnits += summary.count; totalTotalArea += summary.totalArea; totalUsedArea += summary.usedArea; totalRejects += summary.rejects;
+        totalCost += summary.totalCost; totalWasteValue += summary.wasteValue;
+        lastResults.push(summary);
+      }
+    });
+
+    const overallWaste = totalTotalArea > 0 ? (100 - totalUsedArea / totalTotalArea * 100) : 0;
+    summaryBar.innerHTML = `
+      <div class="summary-card"><div class="label">Stock units needed</div><div class="num">${totalStockUnits}</div></div>
+      <div class="summary-card warn"><div class="label">Material waste</div><div class="num">${overallWaste.toFixed(1)}%</div></div>
+      <div class="summary-card ok"><div class="label">Parts placed</div><div class="num">${state.parts.reduce((s, p) => s + p.qty, 0)}</div></div>
+      <div class="summary-card ${totalRejects ? 'warn' : 'ok'}"><div class="label">Didn't fit</div><div class="num">${totalRejects}</div></div>
+      ${totalCost > 0 ? `<div class="summary-card"><div class="label">Total material cost</div><div class="num" style="font-size:20px;">&#8358;${Math.round(totalCost).toLocaleString('en-NG')}</div></div>` : ''}
+      ${totalWasteValue > 0 ? `<div class="summary-card warn"><div class="label">Waste value (&#8358;)</div><div class="num" style="font-size:20px;">&#8358;${Math.round(totalWasteValue).toLocaleString('en-NG')}</div></div>` : ''}
+    `;
+
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'btn-primary';
+    exportBtn.style.marginTop = '10px';
+    exportBtn.textContent = 'Export cut sheet (print / PDF)';
+    exportBtn.addEventListener('click', exportCutSheet);
+    results.appendChild(exportBtn);
+
+    goToTab('layout');
+  });
+
+  function exportCutSheet(){
+    const biz = JSON.parse(localStorage.getItem(BIZ_KEY) || '{}');
+    document.getElementById('pBizName').textContent = biz.name || 'Your Business Name';
+    document.getElementById('pBizContact').textContent = [biz.phone, biz.location].filter(Boolean).join(' \u00b7 ') || '';
+    const jobRef = document.getElementById('jobRef').value.trim();
+    document.getElementById('pMeta').textContent = `Cut sheet${jobRef ? ' \u00b7 ' + jobRef : ''} \u00b7 ${new Date().toISOString().split('T')[0]}`;
+
+    const body = document.getElementById('pBody');
+    body.innerHTML = lastResults.map(r => `
+      <h3>${escapeHtml(r.name)} (${r.dims}) &mdash; ${r.count} ${r.kind === 'sheet' ? 'sheet(s)' : 'bar(s)'}</h3>
+      ${r.rejects ? `<p style="color:#b8531f;font-size:12px;margin:2px 0 10px;">&#9888; Did NOT fit and need separate stock: ${r.rejectNames.map(escapeHtml).join(', ')}</p>` : ''}
+    `).join('');
+
+    window.print();
+  }
+
+  // ---------- Demo example (first-time load) ----------
+  function loadDemo(){
+    state.stocks = [
+      { id: 's' + (idCounter++), type: 'sheet', name: '4x8ft Mild Steel Sheet', w: 1220, h: 2440, qty: 3, price: 45000 }
+    ];
+    const stockId = state.stocks[0].id;
+    state.parts = [
+      { id: 'p' + (idCounter++), stockId, stockType: 'sheet', name: 'bracket-A', w: 400, h: 300, qty: 8, rotate: true },
+      { id: 'p' + (idCounter++), stockId, stockType: 'sheet', name: 'bracket-B', w: 600, h: 250, qty: 6, rotate: true },
+      { id: 'p' + (idCounter++), stockId, stockType: 'sheet', name: 'panel-C', w: 900, h: 500, qty: 3, rotate: true }
+    ];
+    persist();
+  }
+
+  const isFirstLoad = state.stocks.length === 0 && state.parts.length === 0;
+  if (isFirstLoad){
+    loadDemo();
+    const demoNote = document.createElement('div');
+    demoNote.className = 'import-box';
+    demoNote.style.marginBottom = '16px';
+    demoNote.innerHTML = `<span class="itxt">This is a worked example so you can see how it works. Clear it and add your own stock/parts whenever you're ready.</span>
+      <button class="mini-btn danger" id="clearDemoBtn">Clear example &amp; start fresh</button>`;
+    document.getElementById('view-setup').insertBefore(demoNote, document.getElementById('view-setup').firstChild);
+    document.getElementById('clearDemoBtn').addEventListener('click', () => {
+      state.stocks = []; state.parts = [];
+      persist();
+      demoNote.remove();
+      renderStockTable(); renderStockOptions(); renderPartTable();
+    });
+  }
+
+  // init
+  renderStockTable(); renderStockOptions(); renderPartTable();
+
+  if (isFirstLoad){
+    document.getElementById('jobRef').value = 'Example job';
+    document.getElementById('optimizeBtn').click();
+  }
+})();
+</script>
+
+</body>
+</html>
